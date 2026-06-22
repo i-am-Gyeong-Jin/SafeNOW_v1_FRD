@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>안전NOW v1 기능정의서</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Noto Sans KR',sans-serif;background:#F9FAFB;color:#1F2937;line-height:1.6}
+  .layout{display:flex;min-height:100vh}
+
+  /* ── 사이드바 ── */
+  .sidebar{width:220px;background:#1C3A6E;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;padding-bottom:2rem;z-index:100}
+  .sidebar-logo{padding:1.25rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.5rem}
+  .sidebar-logo .name{font-size:13px;font-weight:700;color:#fff}
+  .sidebar-logo .sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+  .sidebar nav a{display:flex;align-items:center;gap:8px;padding:9px 1.25rem;font-size:12px;color:rgba(255,255,255,.6);text-decoration:none;border-left:2px solid transparent;transition:all .15s}
+  .sidebar nav a:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .sidebar nav a.active{color:#fff;background:rgba(255,255,255,.1);border-left-color:#7DB5F0}
+  .sidebar nav .n{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);min-width:20px;flex-shrink:0}
+  .sidebar-group{padding:10px 1.25rem 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.08em;text-transform:uppercase;margin-top:6px}
+
+  /* ── 메인 ── */
+  .main{margin-left:220px;padding:2.5rem 2.5rem 6rem;max-width:1160px;width:100%}
+
+  /* ── 페이지 헤더 ── */
+  .page-hd{margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid #E5E7EB}
+  .page-hd h1{font-size:22px;font-weight:700;color:#1C3A6E;margin-bottom:6px}
+  .page-meta{display:flex;gap:10px;flex-wrap:wrap}
+  .page-meta span{font-size:12px;color:#6B7280;background:#F3F4F6;padding:3px 10px;border-radius:99px}
+
+  /* ── 섹션 공통 ── */
+  .sec{margin-bottom:3.5rem;scroll-margin-top:1.5rem}
+  .sec-hd{display:flex;align-items:flex-start;gap:12px;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #E5E7EB}
+  .sec-num{width:28px;height:28px;border-radius:50%;background:#1C3A6E;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+  .sec-title{font-size:18px;font-weight:700;color:#1C3A6E}
+  .sec-desc{font-size:13px;color:#4B5563;margin-top:3px}
+
+  /* ── 00 HTML 변환 프롬프트 ── */
+  .prompt-wrap{background:#111827;border-radius:12px;overflow:hidden}
+  .prompt-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1F2937;border-bottom:1px solid rgba(255,255,255,.08)}
+  .prompt-bar-title{font-size:11px;font-weight:600;color:#9CA3AF;letter-spacing:.06em;text-transform:uppercase}
+  .copy-btn{padding:4px 12px;background:#374151;border:none;border-radius:6px;font-size:11px;font-weight:600;color:#D1D5DB;cursor:pointer;transition:all .15s;font-family:inherit}
+  .copy-btn:hover{background:#4B5563;color:#fff}
+  .copy-btn.copied{background:#065F46;color:#A7F3D0}
+  .prompt-body{padding:1.25rem 1.5rem;overflow-x:auto}
+  .prompt-body pre{font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:12.5px;color:#E5E7EB;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+  .prompt-body .ph{color:#6EE7B7;font-weight:600}
+  .prompt-body .hd{color:#93C5FD;font-weight:700}
+  .prompt-body .warn{color:#FCD34D;font-weight:700}
+  .prompt-notice{margin-top:1rem;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:12px 16px;font-size:13px;color:#92400E;line-height:1.65}
+  .prompt-notice strong{font-weight:700}
+
+  /* ── 01 업데이트 내역 ── */
+  .tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid #E5E7EB}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+  .tbl th{background:#F9FAFB;padding:9px 14px;text-align:left;font-weight:600;font-size:11px;color:#4B5563;border-bottom:1px solid #E5E7EB;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+  .tbl td{padding:10px 14px;border-bottom:1px solid #F3F4F6;vertical-align:top;line-height:1.6;color:#374151}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl tr:hover td{background:#FAFAFA}
+  .badge-new{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EEF3FB;color:#1C3A6E;margin-left:6px;vertical-align:middle}
+  .up-date{font-size:12px;color:#6B7280;white-space:nowrap}
+  .up-ver{font-size:11px;font-weight:700;color:#2D5FA8;white-space:nowrap}
+  .up-item{font-weight:600;color:#1F2937}
+  .up-desc{color:#4B5563}
+
+  /* ── FRD 섹션 헤더 ── */
+  .frd-hd{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;padding:14px 18px;background:#EEF3FB;border-left:4px solid #1C3A6E;border-radius:0 10px 10px 0}
+  .frd-badge{font-size:11px;font-weight:700;background:#1C3A6E;color:#fff;padding:3px 10px;border-radius:6px;letter-spacing:.04em;white-space:nowrap}
+  .frd-title{font-size:16px;font-weight:700;color:#1C3A6E}
+  .frd-meta{font-size:12px;color:#4B5563;margin-left:auto;white-space:nowrap}
+
+  /* ── 기능 구분 목록 ── */
+  .grp-id-link{font-weight:700;color:#2D5FA8;text-decoration:none;transition:color .12s}
+  .grp-id-link:hover{color:#1C3A6E;text-decoration:underline}
+  .fid-link{color:#2D5FA8;text-decoration:none;transition:color .12s}
+  .fid-link:hover{color:#1C3A6E;text-decoration:underline}
+
+  /* ── 기능 그룹 구분선 ── */
+  .grp-divider{display:flex;align-items:center;gap:10px;margin:2rem 0 1.25rem;scroll-margin-top:1.5rem}
+  .grp-divider-badge{font-size:11px;font-weight:700;background:#E5E7EB;color:#374151;padding:3px 10px;border-radius:99px;white-space:nowrap}
+  .grp-divider-line{flex:1;height:1px;background:#E5E7EB}
+
+  /* ── 기능 카드 ── */
+  .feat{background:#fff;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:1.5rem;overflow:hidden}
+  .feat-hd{display:flex;align-items:center;gap:10px;padding:12px 18px;background:#F8FAFF;border-bottom:1px solid #E5E7EB}
+  .feat-id{font-size:11px;font-weight:700;background:#2D5FA8;color:#fff;padding:3px 9px;border-radius:6px;letter-spacing:.04em;flex-shrink:0;white-space:nowrap}
+  .feat-name{font-size:13px;font-weight:700;color:#1F2937}
+  .feat-body{padding:18px}
+
+  /* ── 메타 정보 그리드 ── */
+  .meta-grid{border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;margin-bottom:1.25rem;font-size:13px}
+  .meta-row{display:grid;grid-template-columns:130px 1fr;border-bottom:1px solid #F3F4F6}
+  .meta-row:last-child{border-bottom:none}
+  .meta-key{padding:8px 12px;background:#F9FAFB;font-weight:600;font-size:11px;color:#4B5563;text-transform:uppercase;letter-spacing:.04em;border-right:1px solid #F3F4F6}
+  .meta-val{padding:8px 12px;color:#1F2937}
+  .meta-id-val{font-weight:700;color:#1C3A6E;font-size:14px}
+  .meta-note{color:#9CA3AF;font-style:italic}
+
+  /* ── 서브 섹션 ── */
+  .sub-sec{margin-bottom:1.25rem}
+  .sub-lbl{font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+  .sub-lbl.ok{color:#276749}
+  .sub-lbl.err{color:#9B1C1C}
+  .sub-lbl.info{color:#185FA5}
+  .desc-box{background:#F8FAFF;border:1px solid #DBEAFE;border-radius:8px;padding:11px 15px;font-size:13px;color:#374151;line-height:1.75}
+
+  /* ── 기능 설명 / 케이스 테이블 ── */
+  .dtbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid #E5E7EB}
+  .dtbl{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+  .dtbl th{padding:8px 12px;text-align:left;font-weight:600;font-size:11px;color:#4B5563;border-bottom:1px solid #E5E7EB;white-space:nowrap}
+  .dtbl td{padding:9px 12px;border-bottom:1px solid #F3F4F6;vertical-align:top;line-height:1.6;color:#374151}
+  .dtbl tr:last-child td{border-bottom:none}
+  .dtbl tr:hover td{background:#FAFAFA}
+  .dtbl .c{text-align:center;font-weight:700;color:#1C3A6E;width:36px}
+  .dtbl .dash{color:#C4C9D4;text-align:center}
+
+  .dtbl.spec-tbl td:first-child{width:130px;font-weight:600;font-size:11px;background:#F9FAFB;color:#4B5563;text-transform:uppercase;letter-spacing:.04em;border-right:1px solid #F3F4F6}
+
+  .dtbl.ok-tbl th{background:#F0FFF4}
+  .dtbl.ok-tbl{border-top:2px solid #86EFAC}
+  .dtbl.err-tbl th{background:#FFF5F5}
+  .dtbl.err-tbl{border-top:2px solid #FECACA}
+
+  /* UI 컬럼 */
+  .ui-cell{background:#FFFBF0;min-width:190px}
+  .ui-item{display:flex;gap:5px;margin-bottom:4px;font-size:12px}
+  .ui-item:last-child{margin-bottom:0}
+  .ui-k{font-weight:600;color:#92400E;white-space:nowrap;min-width:46px;flex-shrink:0;font-size:11px}
+  .ui-v{color:#1F2937;line-height:1.5}
+  .ctag{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;white-space:nowrap;margin-right:3px}
+  .c-toast{background:#EEF3FB;color:#1C3A6E}
+  .c-inline{background:#FEF3C7;color:#78350F}
+  .c-alert{background:#FEE2E2;color:#991B1B}
+  .c-confirm{background:#EDE9FE;color:#4C1D95}
+  .c-pre{background:#F0FFF4;color:#166534}
+  .c-ph{background:#E0F2FE;color:#075985}
+
+  /* ── 플로팅 버튼 ── */
+  .float-btn{position:fixed;top:1.25rem;right:1.75rem;z-index:200;display:flex;align-items:center;gap:7px;padding:9px 16px;background:#1C3A6E;color:#fff;font-size:12px;font-weight:600;text-decoration:none;border-radius:8px;box-shadow:0 2px 12px rgba(28,58,110,.28);transition:all .15s;white-space:nowrap;font-family:inherit;letter-spacing:.01em}
+  .float-btn:hover{background:#2D5FA8;box-shadow:0 4px 18px rgba(28,58,110,.38);transform:translateY(-1px)}
+  .float-btn svg{flex-shrink:0}
+
+  /* ── 반응형 ── */
+  @media(max-width:900px){.sidebar{display:none}.main{margin-left:0;padding:1.5rem}.float-btn{display:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ────────────────── 사이드바 ────────────────── -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="name">안전NOW v1 기능정의서</div>
+    <div class="sub">안전NOW · 기획·개발 협업 문서</div>
+  </div>
+  <nav>
+    <a href="#s00" id="nav-s00"><span class="n">00</span>HTML 변환 프롬프트</a>
+    <a href="#s01" id="nav-s01"><span class="n">01</span>업데이트 내역</a>
+    <div class="sidebar-group">사업장 기준정보</div>
+    <a href="#s02" id="nav-s02"><span class="n">02</span>사업자관리</a>
+    <div class="sidebar-group">현장안전활동</div>
+    <a href="#s03" id="nav-s03"><span class="n">03</span>TBM 그룹 관리</a>
+    <a href="#s04" id="nav-s04"><span class="n">04</span>TBM 스케줄</a>
+  </nav>
+</nav>
+
+<!-- ────────────────── 플로팅 버튼 ────────────────── -->
+<a href="https://i-am-gyeong-jin.github.io/SafeNOW_v1_Component_Standard/" target="_blank" rel="noopener noreferrer" class="float-btn">
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 11.5L11.5 1.5M11.5 1.5H5.5M11.5 1.5V7.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  컴포넌트 정의서 바로가기
+</a>
+
+<!-- ────────────────── 메인 ────────────────── -->
+<main class="main">
+
+  <!-- 페이지 헤더 -->
+  <div class="page-hd">
+    <h1>안전NOW v1 기능정의서</h1>
+    <div class="page-meta">
+      <span>안전NOW</span>
+      <span>기획·개발 협업 문서</span>
+      <span>최초 작성: 2026-06-18</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       00. HTML 변환 프롬프트
+  ══════════════════════════════════════ -->
+  <section class="sec" id="s00">
+    <div class="sec-hd">
+      <div class="sec-num">00</div>
+      <div>
+        <div class="sec-title">HTML 변환 프롬프트</div>
+        <div class="sec-desc">새로운 기능정의서 MD 파일을 이 HTML에 추가할 때 사용하는 프롬프트</div>
+      </div>
+    </div>
+
+    <div class="prompt-notice" style="margin-bottom:1.25rem">
+      <strong>⚠️ 사용 방법</strong> — 아래 프롬프트를 복사한 뒤, <code style="background:#FEE2C8;padding:1px 5px;border-radius:4px;font-size:12px">[여기에 MD 내용 붙여넣기]</code> 자리에 추가할 기능정의서 MD 파일 전체를 붙여넣어 Claude에게 요청하세요.
+    </div>
+
+    <div class="prompt-wrap">
+      <div class="prompt-bar">
+        <span class="prompt-bar-title">Prompt · 안전NOW v1 기능정의서 MD → HTML 변환</span>
+        <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">복사</button>
+      </div>
+      <div class="prompt-body">
+        <pre id="promptText"><span class="hd">안전NOW v1 기능정의서.html</span> 파일에 아래 MD 기능정의서를 추가해줘.
+
+<span class="warn">━━━ 필수 준수 사항 ━━━</span>
+
+<span class="ph">1. MD 내용 불변 원칙</span>
+   MD 파일의 텍스트, 구조, 데이터를 임의로 변경·추가·삭제하지 마.
+   오직 있는 그대로 HTML로 변환해야 해. 어떤 이유로도 내용을 수정하면 안 돼.
+
+<span class="ph">2. UI/UX 개선 제안 제외</span>
+   MD 파일에 UI/UX 개선 제안 섹션이 포함되어 있더라도 HTML 변환 시 넣지 마.
+
+<span class="ph">3. 기능구분 ID 앵커 링크</span>
+   기능 구분 목록 테이블의 기능구분 ID(예: BIZ-001, WKP-001)를
+   클릭 시 해당 그룹 섹션으로 이동하는 앵커 링크로 구성해.
+
+<span class="ph">4. 디자인 시스템 유지</span>
+   기존 HTML의 사이드바, 카드, 테이블, 컬러 시스템을 그대로 유지해.
+
+<span class="ph">5. 단일 메뉴 구성</span>
+   MD 파일 전체를 하나의 메뉴 항목으로 사이드바에 추가해.
+   내부 세부 기능을 별도 사이드바 항목으로 나누지 마.
+
+<span class="ph">6. 업데이트 내역 갱신</span>
+   메뉴 01(업데이트 내역)에 오늘 날짜와 추가 내용을 기재해.
+   최신순 5개 항목만 유지해. 6번째부터는 제거해.
+
+<span class="ph">7. 플로팅 버튼 유지 (필수)</span>
+   HTML 파일 우측 상단에 고정된 "컴포넌트 정의서 바로가기" 플로팅 버튼을
+   절대 제거하거나 수정하지 마. 아래 코드를 사이드바 닫힘 태그와 메인 태그 사이에 그대로 유지해.
+   URL: https://i-am-gyeong-jin.github.io/SafeNOW_v1_Component_Standard/
+
+<span class="warn">━━━━━━━━━━━━━━━━━━━</span>
+
+<span class="hd">▼ 추가할 MD 파일 내용</span>
+
+<span class="ph">[여기에 MD 내용 붙여넣기]</span></pre>
+      </div>
+    </div>
+
+    <div class="prompt-notice" style="margin-top:1rem">
+      <strong>주의</strong> — 이 프롬프트는 기능정의서 내용의 충실한 HTML 변환을 목적으로 합니다. MD 파일에 작성된 기능명, 메시지 문구, 케이스 내용 등 모든 데이터는 <strong>수정 없이 그대로</strong> 반영되어야 합니다.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       01. 업데이트 내역
+  ══════════════════════════════════════ -->
+  <section class="sec" id="s01">
+    <div class="sec-hd">
+      <div class="sec-num">01</div>
+      <div>
+        <div class="sec-title">업데이트 내역</div>
+        <div class="sec-desc">최신순 5개 항목 표시</div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width:110px">날짜</th>
+            <th style="width:60px">버전</th>
+            <th style="width:160px">항목</th>
+            <th>내용</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="up-date">2026-06-22</td>
+            <td class="up-ver">v1.2</td>
+            <td class="up-item">TBMS-001 TBM 스케줄 <span class="badge-new">NEW</span></td>
+            <td class="up-desc">TBM 스케줄 기능정의서(목록 조회, 검색, 스케줄(템플릿) 등록, 수정, 삭제) 작성 및 HTML 변환</td>
+          </tr>
+          <tr>
+            <td class="up-date">2026-06-22</td>
+            <td class="up-ver">v1.1</td>
+            <td class="up-item">TBMG-001 TBM 그룹 관리</td>
+            <td class="up-desc">TBM 그룹 관리 기능정의서(목록 조회, 검색, 그룹 등록, TBM 리더 선택, 멤버 추가, 상세 조회, 그룹 수정, 멤버 목록 검색, 멤버 제거) 작성 및 HTML 변환</td>
+          </tr>
+          <tr>
+            <td class="up-date">2026-06-18</td>
+            <td class="up-ver">v1.0</td>
+            <td class="up-item">BIZ-001 사업자관리</td>
+            <td class="up-desc">사업자관리 기능정의서(목록 조회, 검색, 등록, 사업자등록번호 검증, 주소 검색, 등록증 업로드, 직인 업로드, 상세 조회, 수정, 삭제) 최초 작성 및 HTML 변환</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       02. BIZ-001 사업자관리
+  ══════════════════════════════════════ -->
+  <section class="sec" id="s02">
+    <div class="sec-hd">
+      <div class="sec-num">02</div>
+      <div>
+        <div class="sec-title">사업자관리</div>
+        <div class="sec-desc">FRD-BIZ-001 · 안전NOW · 작성일: 2026-06-18 · v1.0</div>
+      </div>
+    </div>
+
+    <!-- FRD 헤더 -->
+    <div class="frd-hd">
+      <span class="frd-badge">FRD-BIZ-001</span>
+      <span class="frd-title">사업자관리</span>
+      <span class="frd-meta">화면코드: BIZ</span>
+    </div>
+
+    <!-- 기능 구분 목록 -->
+    <div class="sub-sec">
+      <div class="sub-lbl">기능 구분 목록</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th style="width:130px">기능 구분 ID</th><th style="width:160px">기능 구분명</th><th>세부 기능</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><a href="#grp-001" class="grp-id-link">BIZ-001</a></td>
+              <td>사업자 목록</td>
+              <td>목록 조회 / 검색</td>
+            </tr>
+            <tr>
+              <td><a href="#grp-002" class="grp-id-link">BIZ-002</a></td>
+              <td>사업자 등록</td>
+              <td>사업자 등록 / 사업자등록번호 검증 / 주소 검색 / 사업자등록증 업로드 / 직인 업로드</td>
+            </tr>
+            <tr>
+              <td><a href="#grp-003" class="grp-id-link">BIZ-003</a></td>
+              <td>사업자 수정·삭제</td>
+              <td>상세 조회 / 수정 / 삭제</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ───────── BIZ-001 그룹 ───────── -->
+    <div class="grp-divider" id="grp-001">
+      <span class="grp-divider-badge">BIZ-001 · 사업자 목록</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- BIZ-001-01 -->
+    <div class="feat" id="biz-001-01">
+      <div class="feat-hd"><span class="feat-id">BIZ-001-01</span><span class="feat-name">목록 조회 — 사업자 목록을 페이지 단위로 조회한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-001-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 목록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">목록 조회</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">사업자 목록을 페이지 단위로 조회한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-001-02" class="fid-link">BIZ-001-02</a>, <a href="#biz-002-01" class="fid-link">BIZ-002-01</a>, <a href="#biz-003-01" class="fid-link">BIZ-003-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">목록 행 클릭 시 BIZ-003-01(사업자 상세 조회)로 이동</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">사업장 기준정보 &gt; 사업자관리 메뉴 진입 시 표시되는 기본 목록 화면이다. 등록된 사업자를 번호·사업자명·사업자등록번호·대표자·연락처·사업수·사업장수·등록일 컬럼의 테이블로 표시하며, 상단에 키워드 검색 영역과 [사업자등록] 버튼이 위치한다. 하단에는 페이지네이션이 제공된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>번호, 사업자명, 사업자등록번호, 대표자, 연락처, 사업수, 사업장수, 등록일</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 좌측 메뉴에서 [사업자관리]를 클릭한다</td><td>로그인 세션 유효 여부</td><td>사업자관리 목록 페이지 진입</td><td>목록 화면 렌더링</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 소속 회원사 기준 사업자 목록 API를 호출한다</td><td class="dash">-</td><td>사업자 목록 데이터 반환</td><td>테이블에 목록 표시, 하단 페이지네이션 렌더링</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 목록 행(row)을 클릭한다</td><td class="dash">-</td><td>해당 사업자 ID 식별</td><td>사업자 상세·수정 화면으로 이동 (→ BIZ-003-01)</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 페이지네이션 버튼을 클릭한다</td><td>요청 페이지 번호 유효 여부</td><td>해당 페이지 데이터 조회</td><td>해당 페이지 목록으로 테이블 갱신, 선택 페이지 번호 활성 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">5</td><td>사용자가 우측 상단 [사업자등록] 버튼을 클릭한다</td><td class="dash">-</td><td>등록 폼 화면 진입</td><td>사업자 등록 화면으로 이동 (→ BIZ-002-01)</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>목록 데이터 없음 (0건)</td><td class="dash">-</td><td>테이블 내 빈 상태 메시지 표시</td><td class="dash">-</td></tr>
+              <tr><td>세션 만료 상태에서 진입</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+              <tr><td>API 호출 실패 (5xx 오류)</td><td>오류 코드 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "일시적 오류가 발생했습니다" / 본문 "잠시 후 다시 시도해주세요. 문제가 반복되면 고객센터로 문의해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">확인</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIZ-001-02 -->
+    <div class="feat" id="biz-001-02">
+      <div class="feat-hd"><span class="feat-id">BIZ-001-02</span><span class="feat-name">검색 — 키워드로 사업자 목록을 검색한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-001-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 목록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">검색</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">키워드로 사업자 목록을 검색한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-001-01" class="fid-link">BIZ-001-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val dash">-</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 화면 상단의 검색 입력란과 검색 버튼으로 구성된 검색 영역이다. 사업자명·사업자등록번호·대표자명을 통합 키워드로 검색하며, 검색 결과는 기존 목록 테이블 영역에 갱신된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>검색 키워드 (사업자명, 사업자등록번호, 대표자명)</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td>검색어</td></tr>
+            <tr><td>필터링</td><td>사업자명 / 사업자등록번호 / 대표자명 통합 검색</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 검색 입력란에 키워드를 입력하고 검색 버튼을 클릭한다</td><td class="dash">-</td><td>keyword를 포함한 목록 API 호출</td><td class="dash">-</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 매칭 결과를 반환한다</td><td class="dash">-</td><td>검색 결과 데이터 반환</td><td>검색 결과로 테이블 갱신, 페이지 1로 초기화</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 검색어를 삭제하고 재검색한다 (빈 값)</td><td class="dash">-</td><td>keyword 없이 전체 목록 API 재호출</td><td>전체 목록 표시, 페이지 1로 초기화</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>검색 결과 0건</td><td class="dash">-</td><td>테이블 내 빈 상태 메시지 표시</td><td class="dash">-</td></tr>
+              <tr><td>API 호출 실패</td><td>오류 코드 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"검색 중 오류가 발생했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── BIZ-002 그룹 ───────── -->
+    <div class="grp-divider" id="grp-002">
+      <span class="grp-divider-badge">BIZ-002 · 사업자 등록</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- BIZ-002-01 -->
+    <div class="feat" id="biz-002-01">
+      <div class="feat-hd"><span class="feat-id">BIZ-002-01</span><span class="feat-name">사업자 등록 — 신규 사업자 기본정보를 입력하여 등록한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-002-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">사업자 등록</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">신규 사업자 기본정보를 입력하여 등록한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-001-01" class="fid-link">BIZ-001-01</a>, <a href="#biz-002-02" class="fid-link">BIZ-002-02</a>, <a href="#biz-002-03" class="fid-link">BIZ-002-03</a>, <a href="#biz-002-04" class="fid-link">BIZ-002-04</a>, <a href="#biz-002-05" class="fid-link">BIZ-002-05</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">[등록] 버튼 클릭 시 BIZ-002-02(사업자등록번호 검증) 완료 여부를 선행 확인</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 화면의 [사업자등록] 버튼 클릭 시 진입하는 등록 전용 폼 화면이다. 사업자 기본정보(사업자명·사업자등록번호·대표자명·연락처·주소)를 입력하고 파일(사업자등록증·직인)을 첨부한 뒤 [등록] 버튼으로 저장한다. 하단에 [목록으로] 버튼이 제공된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>사업자명, 사업자등록번호, 대표자명, 연락처, 주소, 상세주소, 사업자등록증 파일, 직인 파일</td></tr>
+            <tr><td>필수 항목</td><td>사업자명, 사업자등록번호 (검증 완료 필수), 대표자명, 연락처, 주소</td></tr>
+            <tr><td>선택 항목</td><td>상세주소, 사업자등록증 파일, 직인 파일</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 목록 화면에서 [사업자등록] 버튼을 클릭한다</td><td class="dash">-</td><td>등록 폼 화면 진입</td><td>전체 입력 필드 초기 상태로 렌더링</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-pre">사전 안내</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"PDF, JPG, JPEG, PNG, HWP, HWPX 파일만 업로드 가능합니다." (사업자등록증) / "JPG, JPEG, PNG 파일만 업로드 가능합니다." (직인)</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 각 필드를 입력하고 BIZ-002-02, 03, 04, 05를 수행한다</td><td class="dash">-</td><td>입력값 반영</td><td>각 필드에 입력값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 [등록] 버튼을 클릭한다</td><td>전체 필수 항목 입력 여부, 사업자등록번호 검증 완료 여부</td><td>클라이언트 유효성 검사 통과</td><td>[등록] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>시스템이 등록 API를 호출한다 (multipart/form-data)</td><td class="dash">-</td><td>서버 저장 완료 (200 응답)</td><td>목록 화면(BIZ-001-01)으로 이동</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"사업자가 등록되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>필수 항목 미입력 상태에서 [등록] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>미입력 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"[필드명]을(를) 입력해주세요." (미입력 필드 각각 표시)</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>사업자등록번호 검증 미완료 상태에서 [등록] 클릭</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"사업자등록번호 검증을 완료해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>서버 저장 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"등록에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>[목록으로] 클릭 — 입력 값이 하나라도 존재하는 경우</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "작성 중인 내용이 있습니다" / 본문 "페이지를 벗어나면 입력한 내용이 저장되지 않습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">나가기 / 계속 작성</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 [등록] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIZ-002-02 -->
+    <div class="feat" id="biz-002-02">
+      <div class="feat-hd"><span class="feat-id">BIZ-002-02</span><span class="feat-name">사업자등록번호 검증 — 형식 및 중복 여부를 검증한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-002-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">사업자등록번호 검증</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">사업자등록번호의 형식 및 중복 여부를 검증한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-002-01" class="fid-link">BIZ-002-01</a>, <a href="#biz-003-02" class="fid-link">BIZ-003-02</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">등록·수정 화면 공통 적용. 번호 변경 시 검증 상태 초기화 후 재검증 필요</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">등록 및 수정 폼 내 사업자등록번호 입력 필드 우측에 위치한 [검증] 버튼이다. 클릭 시 입력된 번호의 형식 유효성 및 중복 여부를 확인하며, 등록·수정 저장 전에 반드시 완료되어야 한다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>사업자등록번호</td></tr>
+            <tr><td>필수 항목</td><td>사업자등록번호</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+            <tr><td>입력 형식</td><td>000-00-00000 (하이픈 포함 12자 또는 숫자 10자리)</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 사업자등록번호를 입력하고 [검증] 버튼을 클릭한다</td><td>입력값 존재 여부, 형식 유효성 (000-00-00000)</td><td>형식 검사 통과 후 검증 API 호출</td><td>[검증] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 검증 결과를 반환한다</td><td class="dash">-</td><td>검증 성공 응답 수신</td><td>[검증] 버튼 완료 상태로 변경</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-pre">인라인 성공</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"✓ 사업자등록번호가 확인되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>빈 값 상태에서 [검증] 클릭</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"사업자등록번호를 입력해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>형식 오류 (자릿수·하이픈 위치 오류 등)</td><td>클라이언트 형식 검사 실패</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"올바른 형식을 입력해주세요. (예: 000-00-00000)"</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>이미 등록된 사업자등록번호</td><td>중복 확인 실패 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"이미 등록된 사업자등록번호입니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>유효하지 않은 번호 (조회 결과 없음)</td><td>검증 API 결과 없음 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"유효하지 않은 사업자등록번호입니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>검증 API 호출 실패 (5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"검증 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIZ-002-03 -->
+    <div class="feat" id="biz-002-03">
+      <div class="feat-hd"><span class="feat-id">BIZ-002-03</span><span class="feat-name">주소 검색 — 주소 검색 팝업을 통해 사업자 주소를 입력한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-002-03</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">주소 검색</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">주소 검색 팝업을 통해 사업자 주소를 입력한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-002-01" class="fid-link">BIZ-002-01</a>, <a href="#biz-003-02" class="fid-link">BIZ-003-02</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">등록·수정 화면 공통 적용. 외부 우편번호 검색 서비스(Kakao/Daum) 연동</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">등록 및 수정 폼 내 주소 필드 우측에 위치한 [주소검색] 버튼이다. 클릭 시 외부 우편번호 검색 팝업이 열리며, 주소 선택 완료 시 기본 주소 필드에 도로명 주소가 자동 입력된다. 상세주소는 별도 입력 필드에 직접 입력한다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>주소 (도로명 주소), 상세주소</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 [주소검색] 버튼을 클릭한다</td><td class="dash">-</td><td class="dash">-</td><td>주소 검색 팝업(레이어 또는 새 창) 열림</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>사용자가 팝업 내 검색어를 입력하고 주소를 선택한다</td><td class="dash">-</td><td>선택 주소 데이터(도로명 주소) 반환</td><td>기본 주소 필드에 도로명 주소 자동 입력, 상세주소 필드로 포커스 이동</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 상세주소 필드에 세부 주소를 직접 입력한다</td><td class="dash">-</td><td class="dash">-</td><td>상세주소 필드에 텍스트 표시</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>팝업 닫기 클릭 또는 ESC (주소 미선택)</td><td class="dash">-</td><td>팝업 닫힘, 주소 필드 기존 값 유지</td><td class="dash">-</td></tr>
+              <tr><td>외부 주소 검색 서비스 로드 실패</td><td>외부 스크립트 응답 없음</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"주소 검색 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIZ-002-04 -->
+    <div class="feat" id="biz-002-04">
+      <div class="feat-hd"><span class="feat-id">BIZ-002-04</span><span class="feat-name">사업자등록증 파일 업로드 — 사업자등록증 파일을 첨부한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-002-04</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">사업자등록증 파일 업로드</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">사업자등록증 파일을 첨부한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-002-01" class="fid-link">BIZ-002-01</a>, <a href="#biz-003-02" class="fid-link">BIZ-003-02</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">등록·수정 화면 공통 적용. 선택 항목</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">등록 및 수정 폼 내 사업자등록증 파일 업로드 영역이다. [파일 선택] 버튼 클릭 시 OS 파일 탐색기가 열리며, 허용 형식의 파일을 선택하면 파일명이 표시 영역에 표시된다. 필드 하단에는 허용 형식을 안내하는 사전 안내 문구가 표시된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>사업자등록증 파일</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td>사업자등록증 파일</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+            <tr><td>허용 파일 형식</td><td>PDF, JPG, JPEG, PNG, HWP, HWPX</td></tr>
+            <tr><td>최대 파일 크기</td><td style="color:#9CA3AF;font-style:italic">추후 정의 필요</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>화면 진입 시 시스템이 파일 업로드 영역을 렌더링한다</td><td class="dash">-</td><td class="dash">-</td><td>파일명 표시 영역에 "선택된 파일 없음" 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-pre">사전 안내</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"PDF, JPG, JPEG, PNG, HWP, HWPX 파일만 업로드 가능합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 [파일 선택] 버튼을 클릭한다</td><td class="dash">-</td><td class="dash">-</td><td>OS 파일 탐색기 열림</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 허용 형식의 파일을 선택한다</td><td>파일 형식·크기 유효성</td><td>파일 선택 완료</td><td>파일명이 파일명 표시 영역에 표시됨</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>허용되지 않는 파일 형식 선택</td><td>클라이언트 유효성 검사 실패</td><td>파일 선택 취소, 파일명 표시 영역 초기화</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"PDF, JPG, JPEG, PNG, HWP, HWPX 파일만 업로드 가능합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>파일 크기 초과</td><td>클라이언트 유효성 검사 실패</td><td>파일 선택 취소</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"파일 크기는 [N]MB 이하여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIZ-002-05 -->
+    <div class="feat" id="biz-002-05">
+      <div class="feat-hd"><span class="feat-id">BIZ-002-05</span><span class="feat-name">직인 파일 업로드 — 직인 이미지 파일을 첨부한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-002-05</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">직인 파일 업로드</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">직인 이미지 파일을 첨부한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-002-01" class="fid-link">BIZ-002-01</a>, <a href="#biz-003-02" class="fid-link">BIZ-003-02</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">등록·수정 화면 공통 적용. 선택 항목</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">등록 및 수정 폼 내 직인 파일 업로드 영역이다. [파일 선택] 버튼 클릭 시 OS 파일 탐색기가 열리며, 허용 형식의 이미지 파일을 선택하면 파일명이 표시 영역에 표시된다. 필드 하단에는 허용 형식을 안내하는 사전 안내 문구가 표시된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>직인 파일</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td>직인 파일</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+            <tr><td>허용 파일 형식</td><td>JPG, JPEG, PNG</td></tr>
+            <tr><td>최대 파일 크기</td><td style="color:#9CA3AF;font-style:italic">추후 정의 필요</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>화면 진입 시 시스템이 파일 업로드 영역을 렌더링한다</td><td class="dash">-</td><td class="dash">-</td><td>파일명 표시 영역에 "선택된 파일 없음" 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-pre">사전 안내</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"JPG, JPEG, PNG 파일만 업로드 가능합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 [파일 선택] 버튼을 클릭한다</td><td class="dash">-</td><td class="dash">-</td><td>OS 파일 탐색기 열림</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 허용 형식의 이미지 파일을 선택한다</td><td>파일 형식·크기 유효성</td><td>파일 선택 완료</td><td>파일명이 파일명 표시 영역에 표시됨</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>허용되지 않는 파일 형식 선택 (예: PDF, HWP)</td><td>클라이언트 유효성 검사 실패</td><td>파일 선택 취소, 파일명 표시 영역 초기화</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"JPG, JPEG, PNG 파일만 업로드 가능합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>파일 크기 초과</td><td>클라이언트 유효성 검사 실패</td><td>파일 선택 취소</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"파일 크기는 [N]MB 이하여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── BIZ-003 그룹 ───────── -->
+    <div class="grp-divider" id="grp-003">
+      <span class="grp-divider-badge">BIZ-003 · 사업자 수정·삭제</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- BIZ-003-01 -->
+    <div class="feat" id="biz-003-01">
+      <div class="feat-hd"><span class="feat-id">BIZ-003-01</span><span class="feat-name">상세 조회 — 선택한 사업자의 기존 정보를 조회하여 수정 폼에 표시한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-003-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 수정·삭제</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">상세 조회</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">목록에서 선택한 사업자의 기존 정보를 조회하여 수정 폼에 표시한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-001-01" class="fid-link">BIZ-001-01</a>, <a href="#biz-003-02" class="fid-link">BIZ-003-02</a>, <a href="#biz-003-03" class="fid-link">BIZ-003-03</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">목록 행 클릭 시 URL에 biz_id 파라미터 포함하여 진입. 수정·삭제 화면과 동일 화면</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록에서 행 클릭 시 해당 사업자 ID로 기존 등록 데이터를 조회하여 수정 폼 필드에 자동으로 채워 표시한다. 등록 폼과 동일한 필드 구조이며 하단에 [수정] · [삭제] · [목록으로] 버튼이 표시된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>사업자명, 사업자등록번호, 대표자명, 연락처, 주소, 상세주소, 사업자등록증 파일명, 직인 파일명</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 목록에서 대상 행을 클릭한다</td><td class="dash">-</td><td>URL에 biz_id 포함하여 상세 조회 API 호출</td><td class="dash">-</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 사업자 상세 데이터를 반환한다</td><td class="dash">-</td><td>해당 사업자 데이터 수신</td><td>폼 필드에 기존 데이터 자동 입력, [수정] · [삭제] · [목록으로] 버튼 표시</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>유효하지 않은 biz_id로 URL 직접 접근</td><td>404 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "존재하지 않는 사업자입니다" / 본문 "요청하신 사업자 정보를 찾을 수 없습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">목록으로</span></div></td></tr>
+              <tr><td>접근 권한 없는 사업자 ID (403)</td><td>403 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "접근 권한이 없습니다" / 본문 "해당 사업자에 접근 권한이 없습니다. 관리자에게 문의해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">확인</span></div></td></tr>
+              <tr><td>API 호출 실패 (5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"사업자 정보를 불러오지 못했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIZ-003-02 -->
+    <div class="feat" id="biz-003-02">
+      <div class="feat-hd"><span class="feat-id">BIZ-003-02</span><span class="feat-name">수정 — 기존 사업자 기본정보를 변경하여 저장한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-003-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 수정·삭제</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">수정</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">기존 사업자 기본정보를 변경하여 저장한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-001-01" class="fid-link">BIZ-001-01</a>, <a href="#biz-002-02" class="fid-link">BIZ-002-02</a>, <a href="#biz-002-03" class="fid-link">BIZ-002-03</a>, <a href="#biz-002-04" class="fid-link">BIZ-002-04</a>, <a href="#biz-002-05" class="fid-link">BIZ-002-05</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">사업자등록번호 변경 시 BIZ-002-02(검증) 재수행 필요</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">사업자 상세 조회 화면(BIZ-003-01)에서 기존 데이터를 수정하는 기능이다. 등록 폼과 동일한 필드 구조에 기존 데이터가 사전 입력된 상태이며, 변경 후 [수정] 버튼 클릭 시 저장한다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>사업자명, 사업자등록번호, 대표자명, 연락처, 주소, 상세주소, 사업자등록증 파일, 직인 파일</td></tr>
+            <tr><td>필수 항목</td><td>사업자명, 사업자등록번호 (변경 시 재검증 필수), 대표자명, 연락처, 주소</td></tr>
+            <tr><td>선택 항목</td><td>상세주소, 사업자등록증 파일, 직인 파일</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 기존 데이터를 변경하고 [수정] 버튼을 클릭한다</td><td>전체 필수 항목 입력 여부, 사업자등록번호 검증 완료 여부</td><td>클라이언트 유효성 검사 통과</td><td>[수정] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 수정 API를 호출한다 (multipart/form-data)</td><td class="dash">-</td><td>서버 저장 완료 (200 응답)</td><td>목록 화면(BIZ-001-01)으로 이동</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"사업자 정보가 수정되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>필수 항목 삭제 후 [수정] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>해당 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"[필드명]을(를) 입력해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>사업자등록번호 변경 후 재검증 미완료 상태에서 [수정] 클릭</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"사업자등록번호 검증을 완료해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>서버 수정 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"수정에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>[목록으로] 클릭 — 기존 데이터 대비 변경 사항이 있는 경우</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "작성 중인 내용이 있습니다" / 본문 "페이지를 벗어나면 수정한 내용이 저장되지 않습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">나가기 / 계속 작성</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 [수정] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIZ-003-03 -->
+    <div class="feat" id="biz-003-03">
+      <div class="feat-hd"><span class="feat-id">BIZ-003-03</span><span class="feat-name">삭제 — 등록된 사업자를 삭제한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">BIZ-003-03</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">사업자 수정·삭제</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">삭제</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">등록된 사업자를 삭제한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#biz-001-01" class="fid-link">BIZ-001-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">삭제 후 복구 불가. 컨펌 모달 확인 후 처리</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">수정 화면 하단의 [삭제] 버튼으로 실행된다. 클릭 시 컨펌 모달로 최종 확인을 받은 뒤 삭제 API를 호출하며, 완료 후 목록 화면으로 이동한다. 삭제된 데이터는 복구할 수 없다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>사업자 ID (biz_id)</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 [삭제] 버튼을 클릭한다</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "사업자를 삭제하시겠습니까?" / 본문 "삭제된 사업자 정보는 복구할 수 없습니다. 계속 진행하시겠습니까?"</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">삭제 / 취소</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 컨펌 모달에서 [삭제]를 클릭한다</td><td class="dash">-</td><td>삭제 API 호출 (DELETE)</td><td>모달 닫힘, [삭제] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>시스템이 삭제를 완료한다</td><td class="dash">-</td><td>서버 삭제 완료 (200 응답)</td><td>목록 화면(BIZ-001-01)으로 이동</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"사업자가 삭제되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">4</td><td>사용자가 컨펌 모달에서 [취소]를 클릭하거나 배경을 클릭한다</td><td class="dash">-</td><td>삭제 취소</td><td>모달 닫힘, 수정 화면 유지</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>하위 데이터(사업·사업장 등)가 존재하는 사업자 삭제 시도</td><td>삭제 불가 응답 수신 (409 Conflict)</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "삭제할 수 없습니다" / 본문 "등록된 사업 또는 사업장이 있는 경우 삭제할 수 없습니다. 먼저 해당 정보를 삭제해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">확인</span></div></td></tr>
+              <tr><td>서버 삭제 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"삭제에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 컨펌 모달 [삭제] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+  </section><!-- /s02 -->
+
+  <!-- ══════════════════════════════════════
+       03. TBMG-001 TBM 그룹 관리
+  ══════════════════════════════════════ -->
+  <section class="sec" id="s03">
+    <div class="sec-hd">
+      <div class="sec-num">03</div>
+      <div>
+        <div class="sec-title">TBM 그룹 관리</div>
+        <div class="sec-desc">FRD-TBMG-001 · 안전NOW · 작성일: 2026-06-22 · v1.0</div>
+      </div>
+    </div>
+
+    <!-- FRD 헤더 -->
+    <div class="frd-hd">
+      <span class="frd-badge">FRD-TBMG-001</span>
+      <span class="frd-title">TBM 그룹 관리</span>
+      <span class="frd-meta">화면코드: TBMG</span>
+    </div>
+
+    <!-- 기능 구분 목록 -->
+    <div class="sub-sec">
+      <div class="sub-lbl">기능 구분 목록</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th style="width:130px">기능 구분 ID</th><th style="width:160px">기능 구분명</th><th>세부 기능</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><a href="#grp-tbmg-001" class="grp-id-link">TBMG-001</a></td>
+              <td>TBM 그룹 목록</td>
+              <td>목록 조회 / 검색</td>
+            </tr>
+            <tr>
+              <td><a href="#grp-tbmg-002" class="grp-id-link">TBMG-002</a></td>
+              <td>TBM 그룹 등록</td>
+              <td>그룹 등록 / TBM 리더 선택 / 멤버 추가</td>
+            </tr>
+            <tr>
+              <td><a href="#grp-tbmg-003" class="grp-id-link">TBMG-003</a></td>
+              <td>TBM 그룹 수정</td>
+              <td>상세 조회 / 그룹 수정 / 멤버 목록 검색 / 멤버 제거</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ───────── TBMG-001 그룹 ───────── -->
+    <div class="grp-divider" id="grp-tbmg-001">
+      <span class="grp-divider-badge">TBMG-001 · TBM 그룹 목록</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- TBMG-001-01 -->
+    <div class="feat" id="tbmg-001-01">
+      <div class="feat-hd"><span class="feat-id">TBMG-001-01</span><span class="feat-name">목록 조회 — TBM 그룹 목록을 페이지 단위로 조회한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-001-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 목록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">목록 조회</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">TBM 그룹 목록을 페이지 단위로 조회한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-001-02" class="fid-link">TBMG-001-02</a>, <a href="#tbmg-002-01" class="fid-link">TBMG-002-01</a>, <a href="#tbmg-003-01" class="fid-link">TBMG-003-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">목록 행 클릭 시 TBMG-003-01(TBM 그룹 상세 조회)로 이동</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">현장안전활동 &gt; TBM 그룹 메뉴 진입 시 표시되는 기본 목록 화면이다. 등록된 TBM 그룹을 NO·그룹명·유형·리더·멤버수·생성일자·TBM 누적시간 컬럼의 테이블로 표시하며, 상단에 키워드 검색 영역과 [+ 그룹 등록] 버튼이 위치한다. 하단에는 페이지네이션이 제공된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>NO, 그룹명, 유형, 리더, 멤버수, 생성일자, TBM 누적시간</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td>유형: 작업조·교대조·부서·공정팀·기타 (컬러 뱃지 표시)</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 좌측 메뉴에서 [TBM 그룹]을 클릭한다</td><td>로그인 세션 유효 여부</td><td>TBM 그룹 목록 페이지 진입</td><td>목록 화면 렌더링</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 소속 회원사 기준 TBM 그룹 목록 API를 호출한다</td><td class="dash">-</td><td>TBM 그룹 목록 데이터 반환</td><td>테이블에 목록 표시 (유형 뱃지·멤버수 뱃지 포함), 하단 페이지네이션 렌더링</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 목록 행(row)을 클릭한다</td><td class="dash">-</td><td>해당 그룹 ID 식별</td><td>TBM 그룹 상세·수정 화면으로 이동 (→ TBMG-003-01)</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 페이지네이션 버튼을 클릭한다</td><td>요청 페이지 번호 유효 여부</td><td>해당 페이지 데이터 조회</td><td>해당 페이지 목록으로 테이블 갱신, 선택 페이지 번호 활성 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">5</td><td>사용자가 우측 상단 [+ 그룹 등록] 버튼을 클릭한다</td><td class="dash">-</td><td>등록 폼 화면 진입</td><td>TBM 그룹 등록 화면으로 이동 (→ TBMG-002-01)</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>목록 데이터 없음 (0건)</td><td class="dash">-</td><td>테이블 내 빈 상태 메시지 표시</td><td class="dash">-</td></tr>
+              <tr><td>세션 만료 상태에서 진입</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+              <tr><td>API 호출 실패 (5xx 오류)</td><td>오류 코드 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "일시적 오류가 발생했습니다" / 본문 "잠시 후 다시 시도해주세요. 문제가 반복되면 고객센터로 문의해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">확인</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMG-001-02 -->
+    <div class="feat" id="tbmg-001-02">
+      <div class="feat-hd"><span class="feat-id">TBMG-001-02</span><span class="feat-name">검색 — 키워드로 TBM 그룹을 검색한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-001-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 목록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">검색</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">키워드로 TBM 그룹을 검색한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-001-01" class="fid-link">TBMG-001-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val dash">-</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 화면 상단의 키워드 검색 입력란과 검색 버튼(돋보기 아이콘)으로 구성된 검색 영역이다. 그룹명을 키워드로 검색하며, 검색 결과는 기존 목록 테이블 영역에 갱신된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>검색 키워드 (그룹명)</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td>검색어</td></tr>
+            <tr><td>필터링</td><td>그룹명 키워드 검색</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 검색 입력란에 키워드를 입력하고 검색 버튼(돋보기)을 클릭한다</td><td class="dash">-</td><td>keyword를 포함한 목록 API 호출</td><td class="dash">-</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 매칭 결과를 반환한다</td><td class="dash">-</td><td>검색 결과 데이터 반환</td><td>검색 결과로 테이블 갱신, 페이지 1로 초기화</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 검색어를 삭제하고 재검색한다 (빈 값)</td><td class="dash">-</td><td>keyword 없이 전체 목록 API 재호출</td><td>전체 목록 표시, 페이지 1로 초기화</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>검색 결과 0건</td><td class="dash">-</td><td>테이블 내 빈 상태 메시지 표시</td><td class="dash">-</td></tr>
+              <tr><td>API 호출 실패</td><td>오류 코드 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"검색 중 오류가 발생했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── TBMG-002 그룹 ───────── -->
+    <div class="grp-divider" id="grp-tbmg-002">
+      <span class="grp-divider-badge">TBMG-002 · TBM 그룹 등록</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- TBMG-002-01 -->
+    <div class="feat" id="tbmg-002-01">
+      <div class="feat-hd"><span class="feat-id">TBMG-002-01</span><span class="feat-name">그룹 등록 — 신규 TBM 그룹의 기본정보를 입력하여 등록한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-002-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">그룹 등록</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">신규 TBM 그룹의 기본정보를 입력하여 등록한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-001-01" class="fid-link">TBMG-001-01</a>, <a href="#tbmg-002-02" class="fid-link">TBMG-002-02</a>, <a href="#tbmg-002-03" class="fid-link">TBMG-002-03</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">[저장] 버튼 클릭 시 TBMG-002-02(TBM 리더 선택) 완료 여부 선행 확인. 저장 완료 후 멤버 추가 영역(TBMG-002-03)이 동일 화면 하단에 즉시 표시됨 (별도 팝업 없음)</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 화면의 [+ 그룹 등록] 버튼 클릭 시 진입하는 등록 전용 폼 화면이다. 그룹명·유형·설명·TBM 리더(관리감독자)를 입력한 뒤 [저장] 버튼으로 저장한다. 저장 완료 후 URL에 group_id가 포함되고 화면 하단에 멤버 관리 영역이 자동으로 표시되며, TBM 리더는 첫 번째 멤버로 자동 등록된다. 하단 좌측에 [목록으로] 버튼, 우측에 [저장] 버튼이 제공된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>그룹명, 유형, 설명, TBM 리더 (사용자 ID·이름·부서·직위)</td></tr>
+            <tr><td>필수 항목</td><td>그룹명, 유형, TBM 리더 (관리감독자)</td></tr>
+            <tr><td>선택 항목</td><td>설명</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+            <tr><td>유형 선택값</td><td>작업조, 교대조, 부서, 공정팀, 기타</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 목록 화면에서 [+ 그룹 등록] 버튼을 클릭한다</td><td class="dash">-</td><td>등록 폼 화면 진입</td><td>전체 입력 필드 초기 상태로 렌더링</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-ph">Placeholder</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">그룹명 "예: A조, 1구구 철근팀" / 설명 "그룹 설명 (선택)" / TBM 리더 "클릭하여 TBM 리더 선택"</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 그룹명을 입력한다</td><td class="dash">-</td><td>입력값 반영</td><td>그룹명 필드에 입력값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 유형 드롭다운에서 값을 선택한다</td><td class="dash">-</td><td>유형값 반영</td><td>선택된 유형 표시 (작업조·교대조·부서·공정팀·기타 중 1개)</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 설명 텍스트 영역에 내용을 입력한다 (선택)</td><td class="dash">-</td><td>입력값 반영</td><td>설명 필드에 입력값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">5</td><td>사용자가 TBM 리더 필드를 클릭한다</td><td class="dash">-</td><td>TBM 리더 선택 팝업 열림</td><td>TBM 리더 선택 팝업 표시 (→ TBMG-002-02)</td><td class="dash">-</td></tr>
+              <tr><td class="c">6</td><td>사용자가 [저장] 버튼을 클릭한다</td><td>전체 필수 항목 입력 여부, TBM 리더 선택 완료 여부</td><td>클라이언트 유효성 검사 통과</td><td>[저장] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">7</td><td>시스템이 그룹 등록 API를 호출한다</td><td class="dash">-</td><td>서버 저장 완료 (200 응답), URL에 group_id 파라미터 추가</td><td>화면 하단에 멤버 관리 영역 즉시 표시 (이름 또는 부서 검색 필드 + [인원 추가] 버튼 + 멤버 목록 테이블). TBM 리더가 'TBM리더' 뱃지와 함께 첫 번째 멤버로 자동 표시됨</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"그룹이 등록되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>필수 항목(그룹명·유형) 미입력 상태에서 [저장] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>미입력 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"[필드명]을(를) 입력해주세요." (미입력 필드 각각 표시)</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>TBM 리더 미선택 상태에서 [저장] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>TBM 리더 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 리더를 선택해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>서버 저장 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"등록에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>[목록으로] 클릭 — 입력 값이 하나라도 존재하는 경우</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "작성 중인 내용이 있습니다" / 본문 "페이지를 벗어나면 입력한 내용이 저장되지 않습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">나가기 / 계속 작성</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 [저장] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMG-002-02 -->
+    <div class="feat" id="tbmg-002-02">
+      <div class="feat-hd"><span class="feat-id">TBMG-002-02</span><span class="feat-name">TBM 리더 선택 — 조직도 팝업을 통해 TBM 리더(관리감독자)를 선택한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-002-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">TBM 리더 선택</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">조직도 팝업을 통해 TBM 리더(관리감독자)를 선택한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-002-01" class="fid-link">TBMG-002-01</a>, <a href="#tbmg-003-02" class="fid-link">TBMG-003-02</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">등록·수정 화면 공통 적용. 임직원 항목 클릭 시 즉시 선택 처리 및 팝업 자동 닫힘 (단일 선택)</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">등록 및 수정 폼 내 TBM 리더 입력 필드 클릭 시 표시되는 팝업이다. 좌측에 조직도 트리, 우측에 임직원 목록이 표시되며, 임직원 항목을 클릭하는 즉시 해당 인원이 TBM 리더로 선택되고 팝업이 자동 닫힌다. 선택된 리더는 폼 필드에 이름·부서·직위 정보가 태그 형태(아이콘 + 이름 + 직위 + × 버튼)로 표시된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>리더 사용자 ID, 이름, 부서, 직위</td></tr>
+            <tr><td>필수 항목</td><td>TBM 리더 1명 선택</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td>조직도 부서 트리 선택 / 하위부서 포함 체크박스</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 TBM 리더 입력 필드를 클릭한다</td><td class="dash">-</td><td class="dash">-</td><td>TBM 리더 선택 팝업 열림. 조직도 최상위 부서 선택 상태로 전체 임직원 목록 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>사용자가 조직도 트리에서 특정 부서를 클릭한다</td><td class="dash">-</td><td>선택 부서 기준 임직원 목록 API 호출</td><td>우측 임직원 목록이 선택 부서 인원으로 갱신</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 하위부서 포함 체크박스를 선택/해제한다</td><td class="dash">-</td><td>하위부서 포함 여부 반영하여 임직원 목록 API 재호출</td><td>임직원 목록 갱신</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 임직원 목록에서 특정 인원을 클릭한다</td><td class="dash">-</td><td>선택 인원 데이터(ID·이름·부서·직위) 반환</td><td>팝업 자동 닫힘. TBM 리더 입력 필드에 선택된 인원 태그 표시 (이름 + 직위)</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>[닫기] 버튼 클릭 (인원 미선택 상태)</td><td class="dash">-</td><td>팝업 닫힘, TBM 리더 필드 기존 값 유지</td><td class="dash">-</td></tr>
+              <tr><td>이미 리더가 선택된 상태에서 팝업 재진입 후 다른 인원 선택</td><td class="dash">-</td><td>기존 리더 선택 해제 후 신규 선택 인원으로 교체</td><td class="dash">-</td></tr>
+              <tr><td>조직도 API 호출 실패</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"조직 정보를 불러오지 못했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMG-002-03 -->
+    <div class="feat" id="tbmg-002-03">
+      <div class="feat-hd"><span class="feat-id">TBMG-002-03</span><span class="feat-name">멤버 추가 — 조직도 팝업을 통해 TBM 그룹 멤버를 다중 선택하여 추가한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-002-03</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">멤버 추가</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">조직도 팝업을 통해 TBM 그룹 멤버를 다중 선택하여 추가한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-002-01" class="fid-link">TBMG-002-01</a>, <a href="#tbmg-003-02" class="fid-link">TBMG-003-02</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">등록·수정 화면 공통 적용. 이미 그룹에 속한 인원은 임직원 목록에 '추가됨' 상태로 표시되며 중복 선택 불가. TBM 리더는 자동 멤버이므로 선택 불가 처리</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">그룹 저장 완료 후 화면 하단에 표시되는 멤버 관리 영역의 [인원 추가] 버튼 클릭 시 표시되는 팝업이다. 좌측 조직도 트리에서 부서를 선택하고, 우측 임직원 목록에서 체크박스로 복수의 인원을 선택한 후 [선택 완료]를 클릭하면 멤버가 추가된다. 추가 완료 시 팝업이 자동으로 닫히고 멤버 목록 테이블이 즉시 갱신된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>멤버 사용자 ID 목록, 이름, 부서, 직위</td></tr>
+            <tr><td>필수 항목</td><td>1명 이상 선택</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td>조직도 부서 트리 선택 / 하위조직 포함 체크박스 / 전체 선택 체크박스</td></tr>
+            <tr><td>상태 표시</td><td>이미 추가된 멤버: '추가됨' 텍스트 표시 + 체크박스 비활성화</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 멤버 관리 영역의 [인원 추가] 버튼을 클릭한다</td><td class="dash">-</td><td class="dash">-</td><td>멤버 추가 팝업 열림. 조직도 및 전체 임직원 목록 표시. 이미 추가된 멤버는 '추가됨' 상태로 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>사용자가 조직도 트리에서 특정 부서를 클릭한다</td><td class="dash">-</td><td>선택 부서 기준 임직원 목록 API 호출</td><td>우측 임직원 목록 갱신</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 하위조직 포함 체크박스를 선택/해제한다</td><td class="dash">-</td><td>하위조직 포함 여부 반영하여 임직원 목록 재호출</td><td>임직원 목록 갱신</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 임직원 목록에서 추가할 인원의 체크박스를 선택한다</td><td class="dash">-</td><td>선택 인원 반영</td><td>선택된 인원 행이 파란색 배경으로 강조 표시. 하단 "선택된 인원 N명" 카운트 및 이름 태그 갱신</td><td class="dash">-</td></tr>
+              <tr><td class="c">5</td><td>사용자가 전체 선택 체크박스를 클릭한다 (선택 사항)</td><td class="dash">-</td><td>현재 목록에서 선택 가능한 인원 전체 선택</td><td>'추가됨' 상태 인원 제외 전체 체크 처리. 하단 카운트 갱신</td><td class="dash">-</td></tr>
+              <tr><td class="c">6</td><td>사용자가 [선택 완료] 버튼을 클릭한다</td><td>1명 이상 선택 여부</td><td>멤버 추가 API 호출 (선택된 사용자 ID 목록 전달)</td><td>팝업 자동 닫힘. 멤버 목록 테이블에 추가된 인원 즉시 반영</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"멤버가 추가되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>아무도 선택하지 않고 [선택 완료] 클릭</td><td>클라이언트 유효성 검사 실패</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"추가할 인원을 1명 이상 선택해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>[취소] 버튼 클릭</td><td class="dash">-</td><td>팝업 닫힘, 멤버 목록 변경 없음</td><td class="dash">-</td></tr>
+              <tr><td>멤버 추가 API 호출 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"멤버 추가에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>조직도 임직원 목록 API 호출 실패</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"조직 정보를 불러오지 못했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 [선택 완료] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── TBMG-003 그룹 ───────── -->
+    <div class="grp-divider" id="grp-tbmg-003">
+      <span class="grp-divider-badge">TBMG-003 · TBM 그룹 수정</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- TBMG-003-01 -->
+    <div class="feat" id="tbmg-003-01">
+      <div class="feat-hd"><span class="feat-id">TBMG-003-01</span><span class="feat-name">상세 조회 — 목록에서 선택한 TBM 그룹 정보를 조회하여 수정 폼에 표시한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-003-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 수정</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">상세 조회</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">목록에서 선택한 TBM 그룹 정보를 조회하여 수정 폼에 표시한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-001-01" class="fid-link">TBMG-001-01</a>, <a href="#tbmg-003-02" class="fid-link">TBMG-003-02</a>, <a href="#tbmg-003-03" class="fid-link">TBMG-003-03</a>, <a href="#tbmg-003-04" class="fid-link">TBMG-003-04</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">목록 행 클릭 시 URL에 groupId 파라미터 포함하여 진입. 화면 타이틀은 "TBM 그룹 수정"으로 표시</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록에서 행 클릭 시 해당 그룹 ID로 기존 등록 데이터를 조회하여 수정 폼 필드에 자동으로 채워 표시한다. 등록 폼과 동일한 필드 구조(그룹명·유형·설명·TBM 리더)이며, 화면 하단에 멤버 관리 영역(이름 또는 부서 검색 필드·[인원 추가] 버튼·멤버 목록 테이블)이 함께 표시된다. 하단 좌측에 [목록으로], 우측에 [저장] 버튼이 제공된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>그룹명, 유형, 설명, TBM 리더 (이름·부서·직위), 멤버 목록 (이름·부서·직위)</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td>TBM 리더: 멤버 목록 내 'TBM리더' 뱃지 표시</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 목록에서 대상 행을 클릭한다</td><td class="dash">-</td><td>URL에 groupId 포함하여 상세 조회 API 호출</td><td class="dash">-</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 TBM 그룹 상세 데이터를 반환한다</td><td class="dash">-</td><td>해당 그룹 데이터 수신</td><td>폼 필드에 기존 데이터 자동 입력 (그룹명·유형·설명·TBM 리더). 하단 멤버 목록 테이블에 소속 멤버 전체 표시. TBM 리더 행에 'TBM리더' 뱃지 표시. [목록으로] [저장] 버튼 표시</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>유효하지 않은 groupId로 URL 직접 접근</td><td>404 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "존재하지 않는 그룹입니다" / 본문 "요청하신 TBM 그룹 정보를 찾을 수 없습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">목록으로</span></div></td></tr>
+              <tr><td>접근 권한 없는 그룹 ID (403)</td><td>403 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "접근 권한이 없습니다" / 본문 "해당 TBM 그룹에 접근 권한이 없습니다. 관리자에게 문의해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">확인</span></div></td></tr>
+              <tr><td>API 호출 실패 (5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"그룹 정보를 불러오지 못했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMG-003-02 -->
+    <div class="feat" id="tbmg-003-02">
+      <div class="feat-hd"><span class="feat-id">TBMG-003-02</span><span class="feat-name">그룹 수정 — 기존 TBM 그룹의 기본정보를 변경하여 저장한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-003-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 수정</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">그룹 수정</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">기존 TBM 그룹의 기본정보를 변경하여 저장한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-001-01" class="fid-link">TBMG-001-01</a>, <a href="#tbmg-002-02" class="fid-link">TBMG-002-02</a>, <a href="#tbmg-002-03" class="fid-link">TBMG-002-03</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">TBM 리더 변경 시 TBMG-002-02(TBM 리더 선택) 재수행 필요. [인원 추가] 버튼은 TBMG-002-03 팝업을 호출</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">TBM 그룹 상세 조회 화면(TBMG-003-01)에서 기존 데이터를 수정하는 기능이다. 등록 폼과 동일한 필드 구조에 기존 데이터가 사전 입력된 상태이며, 변경 후 [저장] 버튼 클릭 시 저장한다. 멤버 인원 추가는 동일 화면 내 [인원 추가] 버튼을 통해 TBMG-002-03 팝업으로 처리한다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>그룹명, 유형, 설명, TBM 리더 (사용자 ID)</td></tr>
+            <tr><td>필수 항목</td><td>그룹명, 유형, TBM 리더 (관리감독자)</td></tr>
+            <tr><td>선택 항목</td><td>설명</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 기존 데이터를 변경하고 [저장] 버튼을 클릭한다</td><td>전체 필수 항목 입력 여부, TBM 리더 선택 완료 여부</td><td>클라이언트 유효성 검사 통과</td><td>[저장] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 그룹 수정 API를 호출한다</td><td class="dash">-</td><td>서버 저장 완료 (200 응답)</td><td>수정 화면 유지</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"그룹이 저장되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>필수 항목(그룹명·유형) 삭제 후 [저장] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>해당 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"[필드명]을(를) 입력해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>TBM 리더 태그 삭제 후 재선택 없이 [저장] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>TBM 리더 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 리더를 선택해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>서버 수정 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"저장에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>[목록으로] 클릭 — 기존 데이터 대비 변경 사항이 있는 경우</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "작성 중인 내용이 있습니다" / 본문 "페이지를 벗어나면 수정한 내용이 저장되지 않습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">나가기 / 계속 작성</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 [저장] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMG-003-03 -->
+    <div class="feat" id="tbmg-003-03">
+      <div class="feat-hd"><span class="feat-id">TBMG-003-03</span><span class="feat-name">멤버 목록 검색 — 이름 또는 부서 키워드로 현재 그룹의 멤버 목록을 검색한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-003-03</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 수정</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">멤버 목록 검색</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">이름 또는 부서 키워드로 현재 그룹의 멤버 목록을 검색한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-003-01" class="fid-link">TBMG-003-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">멤버 관리 영역 내 클라이언트 사이드 필터링. 현재 페이지에 로드된 멤버 데이터 기준으로 즉시 필터링</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">수정 화면(TBMG-003-01) 하단 멤버 관리 영역 우측에 위치한 "이름 또는 부서 검색" 입력 필드이다. 키워드 입력 시 현재 멤버 목록을 이름 또는 부서 기준으로 실시간 필터링하여 표시한다. 검색어 삭제 시 전체 멤버 목록이 복원된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>검색 키워드 (이름, 부서)</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td>검색어</td></tr>
+            <tr><td>필터링</td><td>이름 / 부서 키워드 필터링</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 "이름 또는 부서 검색" 필드에 키워드를 입력한다</td><td class="dash">-</td><td>입력값 기준 클라이언트 사이드 필터링 수행</td><td>멤버 목록 테이블이 키워드와 일치하는 이름 또는 부서를 가진 멤버만 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>사용자가 검색어를 삭제한다 (빈 값)</td><td class="dash">-</td><td>필터 해제</td><td>전체 멤버 목록 복원</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>검색 결과 0건</td><td class="dash">-</td><td>멤버 목록 테이블 내 빈 상태 메시지 표시</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMG-003-04 -->
+    <div class="feat" id="tbmg-003-04">
+      <div class="feat-hd"><span class="feat-id">TBMG-003-04</span><span class="feat-name">멤버 제거 — 그룹에서 특정 멤버를 제거한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMG-003-04</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 그룹 수정</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">멤버 제거</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">그룹에서 특정 멤버를 제거한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbmg-003-01" class="fid-link">TBMG-003-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">TBM 리더는 제거 버튼 비활성화 또는 미표시. 컨펌 모달 확인 후 처리</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">수정 화면 하단 멤버 목록 테이블 관리 컬럼에 위치한 제거 버튼(빨간 아이콘)으로 실행된다. 클릭 시 컨펌 모달로 최종 확인을 받은 뒤 멤버 제거 API를 호출하며, 완료 후 멤버 목록 테이블이 즉시 갱신된다. TBM 리더는 그룹의 필수 구성원이므로 제거 버튼이 비활성화 또는 미표시된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>멤버 사용자 ID, 이름</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td>TBM 리더: 제거 버튼 비활성화 또는 미표시. 일반 멤버: 빨간 제거 버튼 표시</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 멤버 목록에서 특정 멤버의 제거 버튼(빨간 아이콘)을 클릭한다</td><td>TBM 리더 여부 확인</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 없음 / 본문 "'[멤버명]' 을(를) 그룹에서 제거하시겠습니까?"</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">취소 / 확인</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 컨펌 모달에서 [확인]을 클릭한다</td><td class="dash">-</td><td>멤버 제거 API 호출</td><td>모달 닫힘</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>시스템이 멤버 제거를 완료한다</td><td class="dash">-</td><td>서버 처리 완료 (200 응답)</td><td>멤버 목록 테이블에서 해당 인원 즉시 제거. 멤버수 갱신</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"멤버가 제거되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">4</td><td>사용자가 컨펌 모달에서 [취소]를 클릭한다</td><td class="dash">-</td><td>제거 취소</td><td>모달 닫힘, 멤버 목록 유지</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>TBM 리더 행의 제거 버튼 클릭 시도</td><td>클라이언트에서 제거 버튼 비활성화 처리</td><td>제거 버튼 비활성화 또는 미표시 상태 유지</td><td class="dash">-</td></tr>
+              <tr><td>멤버 제거 API 호출 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"멤버 제거에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 컨펌 모달 [확인] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+  </section><!-- /s03 -->
+
+  <!-- ══════════════════════════════════════
+       04. TBMS-001 TBM 스케줄
+  ══════════════════════════════════════ -->
+  <section class="sec" id="s04">
+    <div class="sec-hd">
+      <div class="sec-num">04</div>
+      <div>
+        <div class="sec-title">TBM 스케줄</div>
+        <div class="sec-desc">FRD-TBMS-001 · 안전NOW · 작성일: 2026-06-22 · v1.0</div>
+      </div>
+    </div>
+
+    <!-- FRD 헤더 -->
+    <div class="frd-hd">
+      <span class="frd-badge">FRD-TBMS-001</span>
+      <span class="frd-title">TBM 스케줄</span>
+      <span class="frd-meta">화면코드: TBMS</span>
+    </div>
+
+    <!-- 기능 구분 목록 -->
+    <div class="sub-sec">
+      <div class="sub-lbl">기능 구분 목록</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th style="width:130px">기능 구분 ID</th><th style="width:160px">기능 구분명</th><th>세부 기능</th></tr></thead>
+          <tbody>
+            <tr><td><a href="#grp-tbms-001" class="grp-id-link">TBMS-001</a></td><td>TBM 스케줄 목록</td><td>목록 조회 / 검색</td></tr>
+            <tr><td><a href="#grp-tbms-002" class="grp-id-link">TBMS-002</a></td><td>TBM 스케줄 등록</td><td>스케줄(템플릿) 등록</td></tr>
+            <tr><td><a href="#grp-tbms-003" class="grp-id-link">TBMS-003</a></td><td>TBM 스케줄 수정·삭제</td><td>수정 / 삭제</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ───────── TBMS-001 그룹 ───────── -->
+    <div class="grp-divider" id="grp-tbms-001">
+      <span class="grp-divider-badge">TBMS-001 · TBM 스케줄 목록</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- TBMS-001-01 -->
+    <div class="feat" id="tbms-001-01">
+      <div class="feat-hd"><span class="feat-id">TBMS-001-01</span><span class="feat-name">목록 조회 — TBM 스케줄(템플릿) 목록을 페이지 단위로 조회한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMS-001-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 스케줄 목록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">목록 조회</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">TBM 스케줄(템플릿) 목록을 페이지 단위로 조회한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbms-001-02" class="fid-link">TBMS-001-02</a>, <a href="#tbms-002-01" class="fid-link">TBMS-002-01</a>, <a href="#tbms-003-01" class="fid-link">TBMS-003-01</a>, <a href="#tbms-003-02" class="fid-link">TBMS-003-02</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">TBM 스케줄은 자주 사용하는 TBM 내용을 템플릿으로 등록하여 자동 문서 생성에 활용하는 기능</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">현장안전활동 &gt; TBM 스케줄 메뉴 진입 시 표시되는 기본 목록 화면이다. 등록된 TBM 스케줄 템플릿을 스케줄 제목·주기·작업종류·TBM 장소·TBM 그룹·관리(수정/삭제) 컬럼의 테이블로 표시하며, 상단에 키워드 검색 영역과 [등록] 버튼이 위치한다. 하단에는 페이지네이션이 제공된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>스케줄 제목, 주기, 작업종류, TBM 장소, TBM 그룹</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 좌측 메뉴에서 [TBM 스케줄]을 클릭한다</td><td>로그인 세션 유효 여부</td><td>TBM 스케줄 목록 페이지 진입</td><td>목록 화면 렌더링</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>시스템이 소속 회원사 기준 TBM 스케줄 템플릿 목록 API를 호출한다</td><td class="dash">-</td><td>TBM 스케줄 목록 데이터 반환</td><td>테이블에 목록 표시, 하단 페이지네이션 렌더링</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 페이지네이션 버튼을 클릭한다</td><td>요청 페이지 번호 유효 여부</td><td>해당 페이지 데이터 조회</td><td>해당 페이지 목록으로 테이블 갱신, 선택 페이지 번호 활성 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 우측 상단 [등록] 버튼을 클릭한다</td><td class="dash">-</td><td>등록 모달 열림</td><td>TBM 템플릿 등록 모달 표시 (→ TBMS-002-01)</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>목록 데이터 없음 (0건)</td><td class="dash">-</td><td>테이블 내 빈 상태 메시지 표시</td><td class="dash">-</td></tr>
+              <tr><td>세션 만료 상태에서 진입</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+              <tr><td>API 호출 실패 (5xx 오류)</td><td>오류 코드 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "일시적 오류가 발생했습니다" / 본문 "잠시 후 다시 시도해주세요. 문제가 반복되면 고객센터로 문의해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">확인</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMS-001-02 -->
+    <div class="feat" id="tbms-001-02">
+      <div class="feat-hd"><span class="feat-id">TBMS-001-02</span><span class="feat-name">검색 — 키워드로 TBM 스케줄 목록을 검색한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMS-001-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 스케줄 목록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">검색</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">키워드로 TBM 스케줄 목록을 검색한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbms-001-01" class="fid-link">TBMS-001-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val dash">-</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 화면 상단의 검색 입력란과 검색 버튼(돋보기 아이콘)으로 구성된 검색 영역이다. 스케줄 제목을 키워드로 검색하며, 검색 결과는 기존 목록 테이블 영역에 갱신된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>검색 키워드 (스케줄 제목)</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td>검색어</td></tr>
+            <tr><td>필터링</td><td>스케줄 제목 키워드 검색</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 검색 입력란에 키워드를 입력하고 검색 버튼(돋보기)을 클릭한다</td><td class="dash">-</td><td>keyword를 포함한 목록 API 호출</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-ph">Placeholder</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"검색어를 입력하세요"</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">2</td><td>시스템이 매칭 결과를 반환한다</td><td class="dash">-</td><td>검색 결과 데이터 반환</td><td>검색 결과로 테이블 갱신, 페이지 1로 초기화</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 검색어를 삭제하고 재검색한다 (빈 값)</td><td class="dash">-</td><td>keyword 없이 전체 목록 API 재호출</td><td>전체 목록 표시, 페이지 1로 초기화</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>검색 결과 0건</td><td class="dash">-</td><td>테이블 내 빈 상태 메시지 표시</td><td class="dash">-</td></tr>
+              <tr><td>API 호출 실패</td><td>오류 코드 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"검색 중 오류가 발생했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── TBMS-002 그룹 ───────── -->
+    <div class="grp-divider" id="grp-tbms-002">
+      <span class="grp-divider-badge">TBMS-002 · TBM 스케줄 등록</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- TBMS-002-01 -->
+    <div class="feat" id="tbms-002-01">
+      <div class="feat-hd"><span class="feat-id">TBMS-002-01</span><span class="feat-name">스케줄(템플릿) 등록 — TBM 스케줄 템플릿 정보를 입력하여 등록한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMS-002-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 스케줄 등록</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">스케줄(템플릿) 등록</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">TBM 스케줄 템플릿 정보를 입력하여 등록한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbms-001-01" class="fid-link">TBMS-001-01</a>, <a href="#tbmg-001-01" class="fid-link">TBMG-001-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">목록 화면의 [등록] 버튼 클릭 시 모달로 진입. TBM 그룹 드롭다운은 TBMG-001-01에서 관리되는 그룹 목록을 참조. 저장 완료 후 모달 닫힘 및 목록 즉시 갱신</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 화면의 [등록] 버튼 클릭 시 표시되는 TBM 템플릿 등록 모달이다. 스케줄 제목·주기·시작일·종료일·TBM 시작시간·TBM 종료시간·작업종류·작업내용·TBM 장소·TBM 그룹을 입력한 뒤 [저장] 버튼으로 저장한다. [취소] 버튼 클릭 시 모달이 닫히며, 입력 중인 값이 있을 경우 이탈 확인 팝업이 표시된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>스케줄 제목, 주기, 시작일, 종료일, TBM 시작시간, TBM 종료시간, 작업종류, 작업내용, TBM 장소, TBM 그룹</td></tr>
+            <tr><td>필수 항목</td><td>스케줄 제목, 주기, 시작일, 종료일, TBM 시작시간, TBM 종료시간, 작업종류, TBM 장소, TBM 그룹</td></tr>
+            <tr><td>선택 항목</td><td>작업내용</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+            <tr><td>주기 선택값</td><td>매일, 매주, 매월, 분기, 반기, 매년, 비정기</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 목록 화면에서 [등록] 버튼을 클릭한다</td><td class="dash">-</td><td>등록 모달 열림</td><td>TBM 템플릿 등록 모달 표시. 전체 입력 필드 초기 상태 렌더링. 시작일 기본값: 오늘 날짜, TBM 시작시간 기본값: 오전 07:00, TBM 종료시간 기본값: 오전 07:10</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-ph">Placeholder</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">스케줄 제목 "스케줄 제목 입력" / 작업종류 "작업종류 입력" / 작업내용 "작업내용 입력" / TBM 장소 "TBM 장소 입력"</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 스케줄 제목을 입력한다</td><td class="dash">-</td><td>입력값 반영</td><td>스케줄 제목 필드에 입력값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 주기 드롭다운에서 값을 선택한다</td><td class="dash">-</td><td>주기값 반영</td><td>선택된 주기 표시 (매일·매주·매월·분기·반기·매년·비정기 중 1개)</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 시작일을 선택한다</td><td class="dash">-</td><td>시작일 반영</td><td>선택된 시작일 표시. 종료일이 이미 선택된 상태이고 종료일 &lt; 신규 시작일인 경우 종료일 필드 즉시 오류 상태 전환</td><td class="dash">-</td></tr>
+              <tr><td class="c">5</td><td>사용자가 종료일을 선택한다</td><td>종료일 ≥ 시작일 (선택 즉시 검증)</td><td>종료일 반영</td><td>선택된 종료일 표시. 조건 불충족 시 종료일 필드 즉시 오류 상태 전환. 조건 충족 시 오류 상태 해제</td><td class="dash">-</td></tr>
+              <tr><td class="c">6</td><td>사용자가 TBM 시작시간을 입력한다</td><td class="dash">-</td><td>TBM 시작시간 반영</td><td>선택된 시작시간 표시. TBM 종료시간이 이미 입력된 상태이고 종료시간 ≤ 신규 시작시간인 경우 TBM 종료시간 필드 즉시 오류 상태 전환</td><td class="dash">-</td></tr>
+              <tr><td class="c">7</td><td>사용자가 TBM 종료시간을 입력한다</td><td>TBM 종료시간 &gt; TBM 시작시간 (입력 즉시 검증)</td><td>TBM 종료시간 반영</td><td>선택된 종료시간 표시. 조건 불충족 시 TBM 종료시간 필드 즉시 오류 상태 전환. 조건 충족 시 오류 상태 해제</td><td class="dash">-</td></tr>
+              <tr><td class="c">8</td><td>사용자가 작업종류를 입력한다</td><td class="dash">-</td><td>입력값 반영</td><td>작업종류 필드에 입력값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">9</td><td>사용자가 작업내용을 입력한다 (선택)</td><td class="dash">-</td><td>입력값 반영</td><td>작업내용 텍스트 영역에 입력값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">10</td><td>사용자가 TBM 장소를 입력한다</td><td class="dash">-</td><td>입력값 반영</td><td>TBM 장소 필드에 입력값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">11</td><td>사용자가 TBM 그룹 드롭다운에서 그룹을 선택한다</td><td class="dash">-</td><td>TBM 그룹값 반영</td><td>선택된 TBM 그룹 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">12</td><td>사용자가 [저장] 버튼을 클릭한다</td><td>전체 필수 항목 입력 여부</td><td>클라이언트 유효성 검사 통과</td><td>[저장] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">13</td><td>시스템이 등록 API를 호출한다</td><td class="dash">-</td><td>서버 저장 완료 (200 응답)</td><td>모달 닫힘, 목록 테이블 즉시 갱신</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 스케줄이 등록되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>필수 항목 미입력 상태에서 [저장] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>미입력 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"[필드명]을(를) 입력해주세요." (미입력 필드 각각 표시)</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>종료일을 시작일보다 이전 날짜로 선택하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>종료일 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"종료일은 시작일 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>시작일을 종료일보다 이후 날짜로 변경하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>종료일 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"종료일은 시작일 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>TBM 종료시간을 시작시간 이하로 선택하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>TBM 종료시간 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 종료시간은 시작시간 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>TBM 시작시간을 종료시간 이상으로 변경하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>TBM 종료시간 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 종료시간은 시작시간 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>서버 저장 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"등록에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>[취소] 클릭 — 입력 값이 하나라도 존재하는 경우</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "작성 중인 내용이 있습니다" / 본문 "페이지를 벗어나면 입력한 내용이 저장되지 않습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">나가기 / 계속 작성</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 [저장] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+              <tr><td>TBM 그룹 목록 API 호출 실패 (드롭다운 데이터 로드 실패)</td><td>오류 응답 수신</td><td>TBM 그룹 드롭다운 비활성화 또는 빈 목록 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 그룹 정보를 불러오지 못했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── TBMS-003 그룹 ───────── -->
+    <div class="grp-divider" id="grp-tbms-003">
+      <span class="grp-divider-badge">TBMS-003 · TBM 스케줄 수정·삭제</span>
+      <div class="grp-divider-line"></div>
+    </div>
+
+    <!-- TBMS-003-01 -->
+    <div class="feat" id="tbms-003-01">
+      <div class="feat-hd"><span class="feat-id">TBMS-003-01</span><span class="feat-name">수정 — 기존 TBM 스케줄 템플릿 정보를 변경하여 저장한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMS-003-01</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 스케줄 수정·삭제</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">수정</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">기존 TBM 스케줄 템플릿 정보를 변경하여 저장한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbms-001-01" class="fid-link">TBMS-001-01</a>, <a href="#tbmg-001-01" class="fid-link">TBMG-001-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">목록 테이블 관리 컬럼의 [수정] 버튼 클릭 시 모달로 진입. 기존 데이터가 각 필드에 사전 입력된 상태로 표시. 저장 완료 후 모달 닫힘 및 목록 즉시 갱신</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 테이블 관리 컬럼의 [수정] 버튼 클릭 시 표시되는 TBM 템플릿 수정 모달이다. 등록 폼과 동일한 필드 구조에 기존 데이터가 사전 입력된 상태이며, 값을 변경한 후 [저장] 버튼 클릭 시 저장한다. [취소] 버튼 클릭 시 모달이 닫히며, 변경 사항이 있을 경우 이탈 확인 팝업이 표시된다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>스케줄 제목, 주기, 시작일, 종료일, TBM 시작시간, TBM 종료시간, 작업종류, 작업내용, TBM 장소, TBM 그룹</td></tr>
+            <tr><td>필수 항목</td><td>스케줄 제목, 주기, 시작일, 종료일, TBM 시작시간, TBM 종료시간, 작업종류, TBM 장소, TBM 그룹</td></tr>
+            <tr><td>선택 항목</td><td>작업내용</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 목록에서 특정 행의 [수정] 버튼을 클릭한다</td><td class="dash">-</td><td>해당 schedule_id 식별, 상세 데이터 조회 API 호출</td><td>TBM 템플릿 수정 모달 표시. 기존 데이터 각 필드에 자동 입력</td><td class="dash">-</td></tr>
+              <tr><td class="c">2</td><td>사용자가 스케줄 제목·주기·작업종류·작업내용·TBM 장소·TBM 그룹 등 일반 필드 값을 변경한다</td><td class="dash">-</td><td>변경값 반영</td><td>변경된 값 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>사용자가 시작일을 변경한다</td><td class="dash">-</td><td>시작일 반영</td><td>변경된 시작일 표시. 종료일 &lt; 신규 시작일인 경우 종료일 필드 즉시 오류 상태 전환</td><td class="dash">-</td></tr>
+              <tr><td class="c">4</td><td>사용자가 종료일을 변경한다</td><td>종료일 ≥ 시작일 (변경 즉시 검증)</td><td>종료일 반영</td><td>변경된 종료일 표시. 조건 불충족 시 종료일 필드 즉시 오류 상태 전환. 조건 충족 시 오류 상태 해제</td><td class="dash">-</td></tr>
+              <tr><td class="c">5</td><td>사용자가 TBM 시작시간을 변경한다</td><td class="dash">-</td><td>TBM 시작시간 반영</td><td>변경된 시작시간 표시. TBM 종료시간 ≤ 신규 시작시간인 경우 TBM 종료시간 필드 즉시 오류 상태 전환</td><td class="dash">-</td></tr>
+              <tr><td class="c">6</td><td>사용자가 TBM 종료시간을 변경한다</td><td>TBM 종료시간 &gt; TBM 시작시간 (변경 즉시 검증)</td><td>TBM 종료시간 반영</td><td>변경된 종료시간 표시. 조건 불충족 시 TBM 종료시간 필드 즉시 오류 상태 전환. 조건 충족 시 오류 상태 해제</td><td class="dash">-</td></tr>
+              <tr><td class="c">7</td><td>사용자가 [저장] 버튼을 클릭한다</td><td>전체 필수 항목 입력 여부</td><td>클라이언트 유효성 검사 통과</td><td>[저장] 버튼 로딩 상태 표시</td><td class="dash">-</td></tr>
+              <tr><td class="c">8</td><td>시스템이 수정 API를 호출한다</td><td class="dash">-</td><td>서버 저장 완료 (200 응답)</td><td>모달 닫힘, 목록 테이블 즉시 갱신</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 스케줄이 수정되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>수정 모달 데이터 로드 실패 (상세 조회 API 오류)</td><td>오류 응답 수신</td><td>수정 모달 닫힘</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"스케줄 정보를 불러오지 못했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>필수 항목 삭제 후 [저장] 클릭</td><td>클라이언트 유효성 검사 실패</td><td>해당 필드 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"[필드명]을(를) 입력해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>종료일을 시작일보다 이전 날짜로 변경하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>종료일 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"종료일은 시작일 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>시작일을 종료일보다 이후 날짜로 변경하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>종료일 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"종료일은 시작일 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>TBM 종료시간을 시작시간 이하로 변경하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>TBM 종료시간 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 종료시간은 시작시간 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>TBM 시작시간을 종료시간 이상으로 변경하는 즉시</td><td>클라이언트 즉시 유효성 검사 실패</td><td>TBM 종료시간 필드 즉시 오류 상태 표시</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-inline">인라인 오류</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 종료시간은 시작시간 이후여야 합니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>서버 수정 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"수정에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>[취소] 클릭 — 기존 데이터 대비 변경 사항이 있는 경우</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "작성 중인 내용이 있습니다" / 본문 "페이지를 벗어나면 수정한 내용이 저장되지 않습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">나가기 / 계속 작성</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 [저장] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TBMS-003-02 -->
+    <div class="feat" id="tbms-003-02">
+      <div class="feat-hd"><span class="feat-id">TBMS-003-02</span><span class="feat-name">삭제 — 등록된 TBM 스케줄 템플릿을 삭제한다</span></div>
+      <div class="feat-body">
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">기능 ID</span><span class="meta-val meta-id-val">TBMS-003-02</span></div>
+          <div class="meta-row"><span class="meta-key">기능 구분</span><span class="meta-val">TBM 스케줄 수정·삭제</span></div>
+          <div class="meta-row"><span class="meta-key">세부 기능</span><span class="meta-val">삭제</span></div>
+          <div class="meta-row"><span class="meta-key">기능명</span><span class="meta-val">등록된 TBM 스케줄 템플릿을 삭제한다</span></div>
+          <div class="meta-row"><span class="meta-key">연결 기능 ID</span><span class="meta-val"><a href="#tbms-001-01" class="fid-link">TBMS-001-01</a></span></div>
+          <div class="meta-row"><span class="meta-key">비고</span><span class="meta-val meta-note">삭제 후 복구 불가. 컨펌 모달 확인 후 처리. 삭제 완료 후 목록 테이블 즉시 갱신</span></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl info">화면 설명</div><div class="desc-box">목록 테이블 관리 컬럼의 [삭제] 버튼(빨간 버튼)으로 실행된다. 클릭 시 컨펌 모달로 최종 확인을 받은 뒤 삭제 API를 호출하며, 완료 후 목록 테이블이 즉시 갱신된다. 삭제된 데이터는 복구할 수 없다.</div></div>
+        <div class="sub-sec"><div class="sub-lbl">기능 설명</div>
+          <div class="dtbl-wrap"><table class="dtbl spec-tbl"><tbody>
+            <tr><td>권한</td><td>로그인 사용자</td></tr>
+            <tr><td>데이터</td><td>스케줄 ID (schedule_id)</td></tr>
+            <tr><td>필수 항목</td><td class="dash">-</td></tr>
+            <tr><td>선택 항목</td><td class="dash">-</td></tr>
+            <tr><td>필터링</td><td class="dash">-</td></tr>
+            <tr><td>상태 표시</td><td class="dash">-</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl ok">✅ 정상 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl ok-tbl">
+            <thead><tr><th class="c">순서</th><th>행동 / 시스템 처리 내용</th><th>검증 조건</th><th>결과</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td class="c">1</td><td>사용자가 목록에서 특정 행의 [삭제] 버튼을 클릭한다</td><td class="dash">-</td><td class="dash">-</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-confirm">컨펌 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "TBM 스케줄을 삭제하시겠습니까?" / 본문 "삭제된 데이터는 복구할 수 없습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">취소 / 확인</span></div></td></tr>
+              <tr><td class="c">2</td><td>사용자가 컨펌 모달에서 [확인]을 클릭한다</td><td class="dash">-</td><td>삭제 API 호출 (DELETE)</td><td>모달 닫힘</td><td class="dash">-</td></tr>
+              <tr><td class="c">3</td><td>시스템이 삭제를 완료한다</td><td class="dash">-</td><td>서버 삭제 완료 (200 응답)</td><td>목록 테이블에서 해당 항목 즉시 제거, 목록 갱신</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"TBM 스케줄이 삭제되었습니다."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td class="c">4</td><td>사용자가 컨펌 모달에서 [취소]를 클릭하거나 배경을 클릭한다</td><td class="dash">-</td><td>삭제 취소</td><td>모달 닫힘, 목록 유지</td><td class="dash">-</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="sub-sec"><div class="sub-lbl err">⛔ 예외 케이스</div>
+          <div class="dtbl-wrap"><table class="dtbl err-tbl">
+            <thead><tr><th>발생 조건</th><th>시스템 처리 내용</th><th>화면 반응</th><th>UI</th></tr></thead>
+            <tbody>
+              <tr><td>서버 삭제 실패 (4xx/5xx 오류)</td><td>오류 응답 수신</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-toast">토스트</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">"삭제에 실패했습니다. 다시 시도해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">-</span></div></td></tr>
+              <tr><td>세션 만료 상태에서 컨펌 모달 [확인] 클릭</td><td>인증 실패 처리</td><td class="dash">-</td><td class="ui-cell"><div class="ui-item"><span class="ui-k">컴포넌트</span><span class="ui-v"><span class="ctag c-alert">얼럿 모달</span></span></div><div class="ui-item"><span class="ui-k">메시지</span><span class="ui-v">타이틀 "로그인이 필요합니다" / 본문 "세션이 만료되었습니다. 다시 로그인해주세요."</span></div><div class="ui-item"><span class="ui-k">버튼</span><span class="ui-v">로그인하기</span></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+  </section><!-- /s04 -->
+
+</main>
+</div>
+
+<script>
+  // ── 프롬프트 복사 ──
+  function copyPrompt() {
+    const text = document.getElementById('promptText').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '복사됨 ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── 사이드바 활성화 스크롤 스파이 ──
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+  const sections = [
+    document.getElementById('s00'),
+    document.getElementById('s01'),
+    document.getElementById('s02'),
+    document.getElementById('s03'),
+    document.getElementById('s04')
+  ];
+  window.addEventListener('scroll', () => {
+    let cur = 's00';
+    sections.forEach(s => { if (s && window.scrollY >= s.offsetTop - 120) cur = s.id; });
+    navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+  });
+  navLinks.forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth' });
+  }));
+</script>
+</body>
+</html>
