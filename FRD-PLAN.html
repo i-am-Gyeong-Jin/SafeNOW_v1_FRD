@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>안전NOW - 계획관리</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: { 50: "#eff6ff", 100: "#dbeafe", 500: "#3b82f6", 600: "#2563eb", 700: "#1d4ed8" },
+          sidebar: "#1e293b",
+        },
+      },
+    },
+  };
+</script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif; }
+
+  /* 사이드바 */
+  .sidebar { width: 260px; background: #1e293b; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-header { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sidebar-logo { width: 32px; height: 32px; background: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+  .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: #cbd5e1; font-size: 14px; font-weight: 500; text-decoration: none; }
+  .sidebar-item.active { background: #2563eb; color: #fff; }
+  .sidebar-item-icon { width: 20px; height: 20px; flex-shrink: 0; }
+  .sidebar-section { padding: 10px 12px 6px; font-size: 12px; font-weight: 600; color: #64748b; letter-spacing: .02em; }
+
+  /* 페이지네이션 — 컴포넌트 정의서 05 페이지네이션 정책: 현재 페이지는 원형 배지로 표시 */
+  .page-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 34px; border-radius: 8px; font-size: 14px; color: #475569; }
+  .page-btn:hover:not(.active):not(:disabled) { background: #f1f5f9; }
+  .page-btn.active { background: #2563eb; color: #fff; font-weight: 600; border-radius: 999px; }
+  .page-btn:disabled { color: #cbd5e1; cursor: not-allowed; }
+
+  /* 토스트 — 컴포넌트 정의서 03 사용자 안내 정책: 성공 3초 / 오류 5초 후 자동 소멸 */
+  .toast-container { position: fixed; top: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+  .toast { padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; color: #fff; box-shadow: 0 8px 20px rgba(15,23,42,0.18); opacity: 1; transform: translateY(0); transition: opacity .2s ease, transform .2s ease; }
+  .toast-success { background: #16a34a; }
+  .toast-error { background: #dc2626; }
+  .toast-hide { opacity: 0; transform: translateY(-6px); }
+
+  /* 인라인 오류 — 포커스 아웃/제출 시 노출, 올바른 값 입력 시 즉시 해제 */
+  .field-error { color: #dc2626; font-size: 12px; margin-top: 4px; }
+
+  /* 모달 */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 50; }
+  .modal-overlay.hidden { display: none; }
+
+  /* 문서유형에 따라 자동 결정되는 주기 — 사용자가 조작하는 입력처럼 보이지 않도록 비활성 스타일 고정 */
+  .auto-field { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+  .method-badge { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 999px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 500; }
+</style>
+</head>
+<body class="bg-gray-50" data-spec-modal="push">
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- 사이드바: 위험성평가 소제목 + 계획관리(현재 화면) 메뉴만 노출 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="flex items-center gap-3">
+          <div class="sidebar-logo">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <span class="text-lg font-bold text-white">안전NOW</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="space-y-1">
+          <li class="sidebar-section">위험성평가</li>
+          <li>
+            <a href="#" class="sidebar-item">
+              <svg class="sidebar-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+              현황정보
+            </a>
+          </li>
+          <li>
+            <a href="#" class="sidebar-item active">
+              <svg class="sidebar-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              계획관리
+            </a>
+          </li>
+          <li>
+            <a href="#" class="sidebar-item">
+              <svg class="sidebar-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              실행관리
+            </a>
+          </li>
+          <li>
+            <a href="#" class="sidebar-item">
+              <svg class="sidebar-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+              개선조치목록
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="p-3 border-t border-white/10">
+        <div class="flex items-center gap-3 px-2 py-2 rounded-lg">
+          <div class="w-9 h-9 rounded-full bg-slate-600 flex items-center justify-center text-white text-sm font-medium relative">
+            윤
+            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-slate-800"></span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-white font-medium truncate">윤재우 님 · 안전보건관리책임자</p>
+            <p class="text-xs text-slate-400 truncate">(주)안전건설</p>
+          </div>
+        </div>
+        <button class="w-full mt-2 flex items-center justify-between px-3 py-2 rounded-lg bg-slate-800 text-slate-200 text-sm">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l9-4 9 4-9 4-9-4zm0 0v10l9 4m0-14v14m9-14v10l-9 4"></path>
+            </svg>
+            (주)안전건설
+          </span>
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <main class="flex-1 overflow-y-auto p-8">
+
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="flex items-center gap-2 text-xl font-bold text-gray-900">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            계획관리
+          </h1>
+          <button class="flex items-center gap-1 px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg bg-white">
+            가이드
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+
+          <!-- 검색 영역 -->
+          <div class="p-6 border-b border-gray-100">
+            <div class="flex gap-2">
+              <input id="schedule-search-input" type="text" placeholder="스케줄 제목 또는 위험성평가 제목으로 검색"
+                class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+              <button onclick="onScheduleSearch()" class="flex items-center justify-center w-11 h-11 bg-slate-800 hover:bg-slate-900 rounded-lg text-white shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 114 10.5a6.5 6.5 0 0113 0z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 px-6 pt-5">
+            <button onclick="openChecklistModal()" class="flex items-center gap-1.5 px-4 py-2.5 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+              </svg>
+              체크리스트 관리
+            </button>
+            <button onclick="openRegisterModal()" class="flex items-center gap-1.5 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              등록
+            </button>
+          </div>
+
+          <!-- 테이블: 위험성평가 제목 컬럼 삭제, 평가 방식 · 주기 컬럼 추가 -->
+          <div class="overflow-x-auto px-6 pb-6 pt-4">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-200 text-gray-500">
+                  <th class="py-3 px-3 text-center font-medium">스케줄 제목</th>
+                  <th class="py-3 px-3 text-center font-medium">문서 유형</th>
+                  <th class="py-3 px-3 text-center font-medium">평가 방식</th>
+                  <th class="py-3 px-3 text-center font-medium">주기</th>
+                  <th class="py-3 px-3 text-center font-medium">관리</th>
+                </tr>
+              </thead>
+              <tbody id="schedule-tbody" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+
+          <!-- 페이지네이션: 컴포넌트 정의서 05 페이지네이션 정책(페이지당 10개, 최대 10개 그룹, 현재 페이지 원형 배지)에 따라 JS로 렌더링 -->
+          <div id="schedule-pagination" class="flex items-center justify-center gap-1 py-5 border-t border-gray-100"></div>
+
+        </div>
+
+        <footer class="mt-10 pt-6 border-t border-gray-200 flex flex-col md:flex-row md:items-start md:justify-between gap-6 text-xs text-gray-400">
+          <div class="space-y-1">
+            <div class="mb-2">
+              <a href="#" class="hover:text-gray-600">개인정보처리방침</a>
+              <span class="mx-2">|</span>
+              <a href="#" class="hover:text-gray-600">이용약관</a>
+              <span class="mx-2">|</span>
+              <a href="#" class="hover:text-gray-600">사이트맵</a>
+            </div>
+            <p>회사명 다온플레이스(주)</p>
+            <p>대표 박주현</p>
+            <p>주소 전라남도 나주시 우정로 56, B동 204호 (토담리치타워)</p>
+            <p>© 2025 Daonplace Inc.</p>
+          </div>
+          <div class="space-y-1 md:text-right">
+            <p>사업자등록번호 410-87-06615</p>
+            <p>통신판매 신고번호 제2023-전남나주-0181호</p>
+            <p>전화번호 061-820-8070</p>
+            <p>팩스번호 070-8668-8070</p>
+          </div>
+        </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- 위험성평가 스케줄 등록 모달: '템플릿' 표현을 '스케줄'로 통일 -->
+  <div id="register-modal" class="modal-overlay hidden" onclick="if(event.target===this) closeRegisterModal()">
+    <div class="bg-white rounded-2xl shadow-xl w-[600px] max-w-[92vw] max-h-[90vh] overflow-y-auto p-8">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">위험성평가 스케줄 등록</h2>
+
+      <!-- 1. 문서 유형 + 주기: 한 줄로 배치. 주기는 문서 유형에 따라 자동 결정되므로 비활성 표시로 처리 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">문서 유형 <span class="text-red-500">*</span></label>
+          <select id="doc-type-select" onchange="onDocTypeChange()"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            <option value="">선택하세요</option>
+            <option value="정기">정기 위험성평가서</option>
+            <option value="최초">최초 위험성평가서</option>
+            <option value="절차서">위험성평가 절차서</option>
+          </select>
+          <p id="err-reg-doc-type" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">주기 <span class="text-red-500">*</span></label>
+          <select id="cycle-display" disabled class="auto-field w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm">
+            <option>선택하세요</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 2. 스케줄 제목 -->
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">스케줄 제목 <span class="text-red-500">*</span></label>
+      <input id="reg-schedule-title-input" type="text" placeholder="스케줄 제목 입력"
+        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+      <p id="err-reg-title" class="field-error hidden"></p>
+
+      <!-- 3. 시작일 / 종료일: 한 줄로 배치. 컴포넌트 정의서 06 달력 정책에 따라 선후관계 역전 시 오류 없이 자동 보정 -->
+      <div class="grid grid-cols-2 gap-4 mt-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">시작일 <span class="text-red-500">*</span></label>
+          <input id="reg-start-date" type="date" value="2026-07-08"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+          <p id="err-reg-start" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">종료일 <span class="text-red-500">*</span></label>
+          <input id="reg-end-date" type="date" value="2026-07-09"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+          <p id="err-reg-end" class="field-error hidden"></p>
+        </div>
+      </div>
+
+      <!-- 4. 평가 방식 -->
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">평가 방식 <span class="text-red-500">*</span></label>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="assess-method" value="freq" checked onchange="onMethodChange('freq')" class="accent-primary-600" />
+          빈도/강도법
+        </label>
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="assess-method" value="three" onchange="onMethodChange('three')" class="accent-primary-600" />
+          3단계 판단법
+        </label>
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="assess-method" value="checklist" onchange="onMethodChange('checklist')" class="accent-primary-600" />
+          체크리스트법
+        </label>
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="assess-method" value="core" onchange="onMethodChange('core')" class="accent-primary-600" />
+          핵심요인 기술법
+        </label>
+      </div>
+
+      <!-- 5-1. 빈도/강도법 설정 -->
+      <div id="panel-freq" class="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <p class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+          빈도/강도법 설정
+        </p>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">평가 척도 <span class="text-red-500">*</span></label>
+            <select class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+              <option>5×5 (대규모) - 최대 25점</option>
+              <option>4×4 (중규모) - 최대 16점</option>
+              <option>3×3 (소규모) - 최대 9점</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">허용가능 위험점수 <span class="text-red-500">*</span></label>
+            <select class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+              <option>6점 이하 (낮음)</option>
+              <option>8점 이하 (보통)</option>
+              <option>12점 이하 (약간높음)</option>
+            </select>
+          </div>
+        </div>
+        <p class="text-sm font-medium text-gray-700 mt-4 mb-2">위험 등급 범례</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="method-badge">매우높음 (20~25점): 즉시 작업중지</span>
+          <span class="method-badge">높음 (15~16점): 긴급 임시안전보건대책</span>
+          <span class="method-badge">약간높음 (9~12점): 즉시개선</span>
+          <span class="method-badge">보통 (7~8점): 정비·보수기간내 개선</span>
+          <span class="method-badge">낮음 (4~6점): 안전정보 및 교육제공</span>
+          <span class="method-badge">매우낮음 (1~3점): 현재상태유지</span>
+        </div>
+      </div>
+
+      <!-- 5-2. 3단계 판단법 설정 -->
+      <div id="panel-three" class="hidden mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <p class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          3단계 판단법 설정
+        </p>
+        <label class="block text-sm font-medium text-gray-700 mb-2">허용가능 위험성 수준 <span class="text-red-500">*</span></label>
+        <select class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+          <option>하 (낮음) - 가장 엄격</option>
+          <option>중 (보통)</option>
+          <option>상 (높음)</option>
+        </select>
+        <p class="text-xs text-gray-400 mt-2">허용수준보다 높은 위험성은 감소대책이 필요합니다.</p>
+        <p class="text-sm font-medium text-gray-700 mt-4 mb-2">위험성 수준 범례</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="method-badge">하 (낮음)</span>
+          <span class="method-badge">중 (보통)</span>
+          <span class="method-badge">상 (높음)</span>
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-3 mt-8">
+        <button onclick="closeRegisterModal()" class="px-8 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">취소</button>
+        <button onclick="saveRegisterSchedule()" class="px-8 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 위험성평가 스케줄 수정 모달: 등록 모달과 동일한 구성 참고하여 제작 -->
+  <div id="edit-modal" class="modal-overlay hidden" onclick="if(event.target===this) closeEditModal()">
+    <div class="bg-white rounded-2xl shadow-xl w-[600px] max-w-[92vw] max-h-[90vh] overflow-y-auto p-8">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">위험성평가 스케줄 수정</h2>
+
+      <!-- 1. 문서 유형 + 주기: 한 줄로 배치 -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">문서 유형 <span class="text-red-500">*</span></label>
+          <select id="edit-doc-type-select" onchange="onEditDocTypeChange()"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            <option value="">선택하세요</option>
+            <option value="정기">정기 위험성평가서</option>
+            <option value="최초">최초 위험성평가서</option>
+            <option value="절차서">위험성평가 절차서</option>
+          </select>
+          <p id="err-edit-doc-type" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">주기 <span class="text-red-500">*</span></label>
+          <select id="edit-cycle-display" disabled class="auto-field w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm">
+            <option>선택하세요</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 2. 스케줄 제목 -->
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">스케줄 제목 <span class="text-red-500">*</span></label>
+      <input id="edit-schedule-title-input" type="text" placeholder="스케줄 제목 입력"
+        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+      <p id="err-edit-title" class="field-error hidden"></p>
+
+      <!-- 3. 시작일 / 종료일: 한 줄로 배치. 컴포넌트 정의서 06 달력 정책에 따라 선후관계 역전 시 오류 없이 자동 보정 -->
+      <div class="grid grid-cols-2 gap-4 mt-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">시작일 <span class="text-red-500">*</span></label>
+          <input id="edit-start-date" type="date"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+          <p id="err-edit-start" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">종료일 <span class="text-red-500">*</span></label>
+          <input id="edit-end-date" type="date"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+          <p id="err-edit-end" class="field-error hidden"></p>
+        </div>
+      </div>
+
+      <!-- 4. 평가 방식 -->
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">평가 방식 <span class="text-red-500">*</span></label>
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="edit-assess-method" value="freq" onchange="onEditMethodChange('freq')" class="accent-primary-600" />
+          빈도/강도법
+        </label>
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="edit-assess-method" value="three" onchange="onEditMethodChange('three')" class="accent-primary-600" />
+          3단계 판단법
+        </label>
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="edit-assess-method" value="checklist" onchange="onEditMethodChange('checklist')" class="accent-primary-600" />
+          체크리스트법
+        </label>
+        <label class="inline-flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input type="radio" name="edit-assess-method" value="core" onchange="onEditMethodChange('core')" class="accent-primary-600" />
+          핵심요인 기술법
+        </label>
+      </div>
+
+      <!-- 4-1. 빈도/강도법 설정 -->
+      <div id="edit-panel-freq" class="hidden mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <p class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+          빈도/강도법 설정
+        </p>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">평가 척도 <span class="text-red-500">*</span></label>
+            <select class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+              <option>5×5 (대규모) - 최대 25점</option>
+              <option>4×4 (중규모) - 최대 16점</option>
+              <option>3×3 (소규모) - 최대 9점</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">허용가능 위험점수 <span class="text-red-500">*</span></label>
+            <select class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+              <option>6점 이하 (낮음)</option>
+              <option>8점 이하 (보통)</option>
+              <option>12점 이하 (약간높음)</option>
+            </select>
+          </div>
+        </div>
+        <p class="text-sm font-medium text-gray-700 mt-4 mb-2">위험 등급 범례</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="method-badge">매우높음 (20~25점): 즉시 작업중지</span>
+          <span class="method-badge">높음 (15~16점): 긴급 임시안전보건대책</span>
+          <span class="method-badge">약간높음 (9~12점): 즉시개선</span>
+          <span class="method-badge">보통 (7~8점): 정비·보수기간내 개선</span>
+          <span class="method-badge">낮음 (4~6점): 안전정보 및 교육제공</span>
+          <span class="method-badge">매우낮음 (1~3점): 현재상태유지</span>
+        </div>
+      </div>
+
+      <!-- 4-2. 3단계 판단법 설정 -->
+      <div id="edit-panel-three" class="hidden mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <p class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          3단계 판단법 설정
+        </p>
+        <label class="block text-sm font-medium text-gray-700 mb-2">허용가능 위험성 수준 <span class="text-red-500">*</span></label>
+        <select class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+          <option>하 (낮음) - 가장 엄격</option>
+          <option>중 (보통)</option>
+          <option>상 (높음)</option>
+        </select>
+        <p class="text-xs text-gray-400 mt-2">허용수준보다 높은 위험성은 감소대책이 필요합니다.</p>
+        <p class="text-sm font-medium text-gray-700 mt-4 mb-2">위험성 수준 범례</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="method-badge">하 (낮음)</span>
+          <span class="method-badge">중 (보통)</span>
+          <span class="method-badge">상 (높음)</span>
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-3 mt-8">
+        <button onclick="closeEditModal()" class="px-8 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">취소</button>
+        <button onclick="saveEditSchedule()" class="px-8 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 체크리스트 관리 모달 -->
+  <div id="checklist-modal" class="modal-overlay hidden" onclick="if(event.target===this) closeChecklistModal()">
+    <div class="bg-white rounded-2xl shadow-xl w-[760px] max-w-[92vw] max-h-[85vh] overflow-y-auto p-8">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">체크리스트</h2>
+
+      <div class="flex items-center justify-between mb-3">
+        <label class="text-sm font-medium text-gray-700">내 체크리스트</label>
+        <button onclick="openChecklistRegisterModal()" class="flex items-center gap-1 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          등록
+        </button>
+      </div>
+      <div class="overflow-x-auto border border-gray-200 rounded-lg mb-8">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr class="text-gray-500 border-b border-gray-200">
+              <th class="py-2.5 px-3 text-center font-medium">체크리스트명</th>
+              <th class="py-2.5 px-3 text-center font-medium">옵션 유형</th>
+              <th class="py-2.5 px-3 text-center font-medium">항목 수</th>
+              <th class="py-2.5 px-3 text-center font-medium w-28">관리</th>
+            </tr>
+          </thead>
+          <tbody id="my-checklist-tbody" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+
+      <label class="block text-sm font-medium text-gray-700 mb-3">기본 체크리스트</label>
+      <div class="overflow-x-auto border border-gray-200 rounded-lg">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr class="text-gray-500 border-b border-gray-200">
+              <th class="py-2.5 px-3 text-center font-medium">체크리스트명</th>
+              <th class="py-2.5 px-3 text-center font-medium">옵션 유형</th>
+              <th class="py-2.5 px-3 text-center font-medium">항목 수</th>
+              <th class="py-2.5 px-3 text-center font-medium w-24">조회</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr>
+              <td class="py-3 px-3 text-center text-gray-800">안전보건관리책임자 업무 점검표</td>
+              <td class="py-3 px-3 text-center text-gray-600">예/아니오/해당없음</td>
+              <td class="py-3 px-3 text-center text-gray-600">9개</td>
+              <td class="py-3 px-3 text-center">
+                <button onclick="openChecklistDetailModal(0)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 text-xs hover:bg-gray-50">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 114 10.5a6.5 6.5 0 0113 0z"></path></svg>
+                  조회
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-3 px-3 text-center text-gray-800">안전관리자 업무 점검표</td>
+              <td class="py-3 px-3 text-center text-gray-600">예/아니오/해당없음</td>
+              <td class="py-3 px-3 text-center text-gray-600">10개</td>
+              <td class="py-3 px-3 text-center">
+                <button onclick="openChecklistDetailModal(1)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 text-xs hover:bg-gray-50">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 114 10.5a6.5 6.5 0 0113 0z"></path></svg>
+                  조회
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-3 px-3 text-center text-gray-800">보건관리자 업무 점검표</td>
+              <td class="py-3 px-3 text-center text-gray-600">예/아니오/해당없음</td>
+              <td class="py-3 px-3 text-center text-gray-600">10개</td>
+              <td class="py-3 px-3 text-center">
+                <button onclick="openChecklistDetailModal(2)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 text-xs hover:bg-gray-50">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 114 10.5a6.5 6.5 0 0113 0z"></path></svg>
+                  조회
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-3 px-3 text-center text-gray-800">관리감독자 업무 점검표</td>
+              <td class="py-3 px-3 text-center text-gray-600">예/아니오/해당없음</td>
+              <td class="py-3 px-3 text-center text-gray-600">10개</td>
+              <td class="py-3 px-3 text-center">
+                <button onclick="openChecklistDetailModal(3)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 text-xs hover:bg-gray-50">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 114 10.5a6.5 6.5 0 0113 0z"></path></svg>
+                  조회
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-3 px-3 text-center text-gray-800">인력평가 평가표 - 안전보건관리책임자</td>
+              <td class="py-3 px-3 text-center text-gray-600">양호/보통/미흡</td>
+              <td class="py-3 px-3 text-center text-gray-600">10개</td>
+              <td class="py-3 px-3 text-center">
+                <button onclick="openChecklistDetailModal(4)" class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 text-xs hover:bg-gray-50">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 114 10.5a6.5 6.5 0 0113 0z"></path></svg>
+                  조회
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-center mt-8">
+        <button onclick="closeChecklistModal()" class="px-8 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 체크리스트 등록 모달 -->
+  <div id="checklist-register-modal" class="modal-overlay hidden" style="z-index:60;" onclick="if(event.target===this) closeChecklistRegisterModal()">
+    <div class="bg-white rounded-2xl shadow-xl w-[600px] max-w-[92vw] max-h-[90vh] overflow-y-auto p-8">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">체크리스트 등록</h2>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">체크리스트 제목 <span class="text-red-500">*</span></label>
+      <input id="checklist-title-input" type="text" placeholder="체크리스트 제목을 입력하세요"
+        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+      <p id="err-checklist-title" class="field-error hidden"></p>
+
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">옵션 유형 <span class="text-red-500">*</span></label>
+      <select id="checklist-option-type-select"
+        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+        <option value="">선택하세요</option>
+        <option>예/아니오/해당없음</option>
+        <option>예/아니오</option>
+        <option>양호/보통/미흡</option>
+        <option>상/중/하</option>
+      </select>
+      <p id="err-checklist-option" class="field-error hidden"></p>
+
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">체크리스트 항목 <span class="text-red-500">*</span></label>
+      <div id="checklist-item-list" class="space-y-2"></div>
+      <p id="err-checklist-items" class="field-error hidden"></p>
+
+      <button onclick="addChecklistItemRow('checklist-item-list')" class="flex items-center gap-1 mt-3 px-3 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        항목 추가
+      </button>
+      <p class="text-xs text-gray-400 mt-2">최대 30개까지 추가 가능합니다.</p>
+
+      <div class="flex justify-center gap-3 mt-8">
+        <button onclick="closeChecklistRegisterModal()" class="px-8 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">취소</button>
+        <button onclick="saveChecklistRegister()" class="px-8 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 체크리스트 수정 모달: 등록 모달과 동일한 구성 참고하여 제작 -->
+  <div id="checklist-edit-modal" class="modal-overlay hidden" style="z-index:60;" onclick="if(event.target===this) closeChecklistEditModal()">
+    <div class="bg-white rounded-2xl shadow-xl w-[600px] max-w-[92vw] max-h-[90vh] overflow-y-auto p-8">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">체크리스트 수정</h2>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">체크리스트 제목 <span class="text-red-500">*</span></label>
+      <input id="edit-checklist-title-input" type="text" placeholder="체크리스트 제목을 입력하세요"
+        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+      <p id="err-edit-checklist-title" class="field-error hidden"></p>
+
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">옵션 유형 <span class="text-red-500">*</span></label>
+      <select id="edit-checklist-option-type-select"
+        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+        <option value="">선택하세요</option>
+        <option>예/아니오/해당없음</option>
+        <option>예/아니오</option>
+        <option>양호/보통/미흡</option>
+        <option>상/중/하</option>
+      </select>
+      <p id="err-edit-checklist-option" class="field-error hidden"></p>
+
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">체크리스트 항목 <span class="text-red-500">*</span></label>
+      <div id="edit-checklist-item-list" class="space-y-2"></div>
+      <p id="err-edit-checklist-items" class="field-error hidden"></p>
+
+      <button onclick="addChecklistItemRow('edit-checklist-item-list')" class="flex items-center gap-1 mt-3 px-3 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        항목 추가
+      </button>
+      <p class="text-xs text-gray-400 mt-2">최대 30개까지 추가 가능합니다.</p>
+
+      <div class="flex justify-center gap-3 mt-8">
+        <button onclick="closeChecklistEditModal()" class="px-8 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">취소</button>
+        <button onclick="saveChecklistEdit()" class="px-8 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기본 체크리스트 상세 (조회) 모달 — 조회 전용, 편집 불가 -->
+  <div id="checklist-detail-modal" class="modal-overlay hidden" style="z-index:60;" onclick="if(event.target===this) closeChecklistDetailModal()">
+    <div class="bg-white rounded-2xl shadow-xl w-[600px] max-w-[92vw] max-h-[90vh] overflow-y-auto p-8">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">기본 체크리스트 상세</h2>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">체크리스트 제목</label>
+      <input id="checklist-detail-title" type="text" disabled
+        class="auto-field w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm" />
+
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">옵션 유형</label>
+      <input id="checklist-detail-option-type" type="text" disabled
+        class="auto-field w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm" />
+
+      <label class="block text-sm font-medium text-gray-700 mt-5 mb-2">체크리스트 항목</label>
+      <div id="checklist-detail-items" class="space-y-2"></div>
+
+      <div class="flex justify-center mt-8">
+        <button onclick="closeChecklistDetailModal()" class="px-8 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 공용 삭제 확인 모달 — 컴포넌트 정의서 12 업무 삭제 정책: 취소/삭제 2버튼 + 비가역성 명시 -->
+  <div id="confirm-modal" class="modal-overlay hidden" style="z-index:80;" onclick="if(event.target===this) closeConfirmModal()">
+    <div class="bg-white rounded-2xl shadow-xl w-[420px] max-w-[90vw] p-6">
+      <h3 id="confirm-modal-title" class="text-base font-bold text-gray-900 mb-2"></h3>
+      <p id="confirm-modal-body" class="text-sm text-gray-500 mb-6"></p>
+      <div class="flex justify-center gap-3">
+        <button onclick="closeConfirmModal()" class="px-6 py-2.5 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50">취소</button>
+        <button id="confirm-modal-confirm-btn" onclick="runConfirmAction()" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 컨테이너 — 컴포넌트 정의서 03 사용자 안내 정책 -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    // 문서 유형에 따라 주기가 자동으로 결정됨 (사용자가 직접 입력/선택하지 않도록 비활성 표시)
+    const DOC_TYPE_CYCLE = {
+      '정기': '매년',
+      '최초': '비정기',
+      '절차서': '매년',
+    };
+    const DOC_TYPE_LABEL = {
+      '정기': '정기 위험성평가서',
+      '최초': '최초 위험성평가서',
+      '절차서': '위험성평가 절차서',
+    };
+    const METHOD_LABEL = {
+      freq: '빈도/강도법',
+      three: '3단계 판단법',
+      checklist: '체크리스트법',
+      core: '핵심요인 기술법',
+    };
+
+    // 공용: 토스트 — 성공 3초 / 오류 5초 후 자동 소멸
+    function showToast(message, type) {
+      type = type || 'success';
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      const duration = type === 'error' ? 5000 : 3000;
+      setTimeout(() => {
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 200);
+      }, duration);
+    }
+
+    // 공용: 삭제 확인 모달 — 컴포넌트 정의서 12 업무 삭제 정책 준용
+    let _confirmOnConfirm = null;
+    function openConfirmModal(opts) {
+      document.getElementById('confirm-modal-title').textContent = opts.title;
+      document.getElementById('confirm-modal-body').textContent = opts.body;
+      document.getElementById('confirm-modal-confirm-btn').textContent = opts.confirmLabel || '삭제';
+      _confirmOnConfirm = opts.onConfirm;
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+    function closeConfirmModal() {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      _confirmOnConfirm = null;
+    }
+    function runConfirmAction() {
+      const cb = _confirmOnConfirm;
+      closeConfirmModal();
+      if (cb) cb();
+    }
+
+    // 공용: 인라인 오류 — 포커스 아웃/제출 시 노출, 올바른 값 입력 시 즉시 해제
+    function setFieldError(errId, message) {
+      const el = document.getElementById(errId);
+      if (!el) return;
+      el.textContent = message;
+      el.classList.remove('hidden');
+    }
+    function clearFieldError(errId) {
+      const el = document.getElementById(errId);
+      if (!el) return;
+      el.textContent = '';
+      el.classList.add('hidden');
+    }
+    function bindClearOnInput(fieldId, errId) {
+      const el = document.getElementById(fieldId);
+      if (!el) return;
+      el.addEventListener('input', () => clearFieldError(errId));
+      el.addEventListener('change', () => clearFieldError(errId));
+    }
+
+    // 공용: 달력 정책 — 시작일/종료일 선후관계가 역전되면 오류 노출 없이 반대편 값을 조용히 보정
+    function bindDateRangeAutoCorrect(startId, endId) {
+      const start = document.getElementById(startId);
+      const end = document.getElementById(endId);
+      if (!start || !end) return;
+      start.addEventListener('change', () => {
+        if (start.value && end.value && start.value > end.value) end.value = start.value;
+      });
+      end.addEventListener('change', () => {
+        if (start.value && end.value && end.value < start.value) start.value = end.value;
+      });
+    }
+
+    function onDocTypeChange() {
+      const docType = document.getElementById('doc-type-select').value;
+      const cycleSelect = document.getElementById('cycle-display');
+      const cycle = DOC_TYPE_CYCLE[docType];
+      cycleSelect.innerHTML = cycle ? `<option>${cycle}</option>` : '<option>선택하세요</option>';
+    }
+
+    function onMethodChange(value) {
+      document.getElementById('panel-freq').classList.toggle('hidden', value !== 'freq');
+      document.getElementById('panel-three').classList.toggle('hidden', value !== 'three');
+      // 체크리스트법 / 핵심요인 기술법은 별도 설정 항목이 없음
+    }
+
+    function resetRegisterForm() {
+      document.getElementById('doc-type-select').value = '';
+      onDocTypeChange();
+      document.getElementById('reg-schedule-title-input').value = '';
+      document.getElementById('reg-start-date').value = '2026-07-08';
+      document.getElementById('reg-end-date').value = '2026-07-09';
+      document.querySelector('input[name="assess-method"][value="freq"]').checked = true;
+      onMethodChange('freq');
+      ['err-reg-doc-type', 'err-reg-title', 'err-reg-start', 'err-reg-end'].forEach(clearFieldError);
+    }
+
+    function openRegisterModal() {
+      resetRegisterForm();
+      document.getElementById('register-modal').classList.remove('hidden');
+    }
+    function closeRegisterModal() {
+      document.getElementById('register-modal').classList.add('hidden');
+    }
+
+    function validateScheduleForm(ids) {
+      let valid = true;
+      if (!document.getElementById(ids.docType).value) {
+        setFieldError(ids.errDocType, '문서 유형을 선택해주세요.');
+        valid = false;
+      } else clearFieldError(ids.errDocType);
+
+      if (!document.getElementById(ids.title).value.trim()) {
+        setFieldError(ids.errTitle, '스케줄 제목을 입력해주세요.');
+        valid = false;
+      } else clearFieldError(ids.errTitle);
+
+      if (!document.getElementById(ids.start).value) {
+        setFieldError(ids.errStart, '시작일을 선택해주세요.');
+        valid = false;
+      } else clearFieldError(ids.errStart);
+
+      if (!document.getElementById(ids.end).value) {
+        setFieldError(ids.errEnd, '종료일을 선택해주세요.');
+        valid = false;
+      } else clearFieldError(ids.errEnd);
+
+      return valid;
+    }
+
+    function saveRegisterSchedule() {
+      const valid = validateScheduleForm({
+        docType: 'doc-type-select', title: 'reg-schedule-title-input', start: 'reg-start-date', end: 'reg-end-date',
+        errDocType: 'err-reg-doc-type', errTitle: 'err-reg-title', errStart: 'err-reg-start', errEnd: 'err-reg-end',
+      });
+      if (!valid) return;
+      SCHEDULE_ROWS.unshift({
+        id: scheduleIdSeq++,
+        title: document.getElementById('reg-schedule-title-input').value.trim(),
+        docType: document.getElementById('doc-type-select').value,
+        method: document.querySelector('input[name="assess-method"]:checked').value,
+        start: document.getElementById('reg-start-date').value,
+        end: document.getElementById('reg-end-date').value,
+      });
+      closeRegisterModal();
+      scheduleSearchKeyword = '';
+      document.getElementById('schedule-search-input').value = '';
+      schedulePage = 1;
+      renderScheduleTable();
+      showToast('등록되었습니다.');
+    }
+
+    // 위험성평가 스케줄 데이터 — 등록/수정/삭제/검색/페이지네이션의 단일 소스
+    let scheduleIdSeq = 6;
+    const SCHEDULE_ROWS = [
+      { id: 1, title: '핵심요인 기술법 test', docType: '최초', method: 'core', start: '2026-07-08', end: '2026-07-09' },
+      { id: 2, title: '원료입고 위험성평가', docType: '최초', method: 'freq', start: '2026-07-08', end: '2026-07-09' },
+      { id: 3, title: '2026년도 전사 정기 위험성평가(하반기)', docType: '정기', method: 'freq', start: '2026-07-01', end: '2026-12-31' },
+      { id: 4, title: '2026년도 전사 정기 위험성평가(상반기)', docType: '정기', method: 'freq', start: '2026-01-01', end: '2026-06-30' },
+      { id: 5, title: '2026년 상반기 정기 위험성평가 스케줄', docType: '최초', method: 'checklist', start: '2026-01-01', end: '2026-06-30' },
+    ];
+    let scheduleSearchKeyword = '';
+    let schedulePage = 1;
+    const SCHEDULE_PAGE_SIZE = 10;
+
+    function scheduleRowHtml(row) {
+      return `
+        <tr>
+          <td class="py-4 px-3 text-center text-primary-600 font-medium">${escapeHtml(row.title)}</td>
+          <td class="py-4 px-3 text-center text-gray-600">${DOC_TYPE_LABEL[row.docType] || '-'}</td>
+          <td class="py-4 px-3 text-center text-gray-600">${METHOD_LABEL[row.method] || '-'}</td>
+          <td class="py-4 px-3 text-center text-gray-600">${DOC_TYPE_CYCLE[row.docType] || '-'}</td>
+          <td class="py-4 px-3">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openEditModal(${row.id})" class="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600 text-xs hover:bg-gray-50">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                수정
+              </button>
+              <button onclick="confirmDeleteSchedule(${row.id})" class="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs hover:bg-red-100">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                삭제
+              </button>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    // 테이블 정책: 등록 데이터 없음 / 검색 결과 없음을 <tbody>를 대체하는 1행 안내로 표시
+    function scheduleEmptyRowHtml(message) {
+      return `<tr><td colspan="5" class="py-10 text-center text-gray-400 text-sm">${message}</td></tr>`;
+    }
+
+    function getFilteredSchedules() {
+      const keyword = scheduleSearchKeyword.trim();
+      return keyword ? SCHEDULE_ROWS.filter((r) => r.title.includes(keyword)) : SCHEDULE_ROWS;
+    }
+
+    function renderScheduleTable() {
+      const tbody = document.getElementById('schedule-tbody');
+      const filtered = getFilteredSchedules();
+
+      if (SCHEDULE_ROWS.length === 0) {
+        tbody.innerHTML = scheduleEmptyRowHtml('등록된 스케줄이 없습니다.');
+      } else if (filtered.length === 0) {
+        tbody.innerHTML = scheduleEmptyRowHtml('검색 결과가 없습니다.');
+      } else {
+        const totalPages = Math.max(1, Math.ceil(filtered.length / SCHEDULE_PAGE_SIZE));
+        if (schedulePage > totalPages) schedulePage = totalPages;
+        const pageItems = filtered.slice((schedulePage - 1) * SCHEDULE_PAGE_SIZE, schedulePage * SCHEDULE_PAGE_SIZE);
+        tbody.innerHTML = pageItems.map(scheduleRowHtml).join('');
+      }
+      renderSchedulePagination(filtered.length);
+    }
+
+    // 페이지네이션 정책: 페이지당 10개 고정, 최대 10개 버튼(1그룹), 현재 페이지 원형 배지, 10페이지 미만 시 이전/다음 비활성
+    function renderSchedulePagination(totalItems) {
+      const container = document.getElementById('schedule-pagination');
+      const totalPages = Math.max(1, Math.ceil(totalItems / SCHEDULE_PAGE_SIZE));
+      const groupSize = 10;
+      const groupStart = Math.floor((schedulePage - 1) / groupSize) * groupSize + 1;
+      const groupEnd = Math.min(groupStart + groupSize - 1, totalPages);
+
+      let html = '';
+      html += `<button class="page-btn" ${schedulePage === 1 ? 'disabled' : ''} title="처음" onclick="goToSchedulePage(1)"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg></button>`;
+      html += `<button class="page-btn" ${schedulePage === 1 ? 'disabled' : ''} title="이전" onclick="goToSchedulePage(${schedulePage - 1})"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>`;
+      for (let p = groupStart; p <= groupEnd; p++) {
+        html += `<button class="page-btn ${p === schedulePage ? 'active' : ''}" onclick="goToSchedulePage(${p})">${p}</button>`;
+      }
+      html += `<button class="page-btn" ${schedulePage === totalPages ? 'disabled' : ''} title="다음" onclick="goToSchedulePage(${schedulePage + 1})"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>`;
+      html += `<button class="page-btn" ${schedulePage === totalPages ? 'disabled' : ''} title="마지막" onclick="goToSchedulePage(${totalPages})"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg></button>`;
+      container.innerHTML = html;
+    }
+
+    function goToSchedulePage(p) {
+      const totalPages = Math.max(1, Math.ceil(getFilteredSchedules().length / SCHEDULE_PAGE_SIZE));
+      if (p < 1 || p > totalPages) return;
+      schedulePage = p;
+      renderScheduleTable();
+    }
+
+    // 검색 적용 시 1페이지로 강제 초기화 (페이지네이션 정책)
+    function onScheduleSearch() {
+      scheduleSearchKeyword = document.getElementById('schedule-search-input').value;
+      schedulePage = 1;
+      renderScheduleTable();
+    }
+
+    function onEditDocTypeChange() {
+      const docType = document.getElementById('edit-doc-type-select').value;
+      const cycleSelect = document.getElementById('edit-cycle-display');
+      const cycle = DOC_TYPE_CYCLE[docType];
+      cycleSelect.innerHTML = cycle ? `<option>${cycle}</option>` : '<option>선택하세요</option>';
+    }
+
+    function onEditMethodChange(value) {
+      document.getElementById('edit-panel-freq').classList.toggle('hidden', value !== 'freq');
+      document.getElementById('edit-panel-three').classList.toggle('hidden', value !== 'three');
+    }
+
+    let editingScheduleId = null;
+
+    function openEditModal(id) {
+      const row = SCHEDULE_ROWS.find((r) => r.id === id);
+      if (!row) return;
+      editingScheduleId = id;
+      document.getElementById('edit-schedule-title-input').value = row.title;
+      document.getElementById('edit-doc-type-select').value = row.docType;
+      onEditDocTypeChange();
+      document.getElementById('edit-start-date').value = row.start;
+      document.getElementById('edit-end-date').value = row.end;
+      document.querySelector(`input[name="edit-assess-method"][value="${row.method}"]`).checked = true;
+      onEditMethodChange(row.method);
+      ['err-edit-doc-type', 'err-edit-title', 'err-edit-start', 'err-edit-end'].forEach(clearFieldError);
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+      editingScheduleId = null;
+    }
+
+    function saveEditSchedule() {
+      const valid = validateScheduleForm({
+        docType: 'edit-doc-type-select', title: 'edit-schedule-title-input', start: 'edit-start-date', end: 'edit-end-date',
+        errDocType: 'err-edit-doc-type', errTitle: 'err-edit-title', errStart: 'err-edit-start', errEnd: 'err-edit-end',
+      });
+      if (!valid) return;
+      const row = SCHEDULE_ROWS.find((r) => r.id === editingScheduleId);
+      if (!row) return;
+      row.docType = document.getElementById('edit-doc-type-select').value;
+      row.title = document.getElementById('edit-schedule-title-input').value.trim();
+      row.start = document.getElementById('edit-start-date').value;
+      row.end = document.getElementById('edit-end-date').value;
+      row.method = document.querySelector('input[name="edit-assess-method"]:checked').value;
+      closeEditModal();
+      renderScheduleTable();
+      showToast('수정되었습니다.');
+    }
+
+    function confirmDeleteSchedule(id) {
+      openConfirmModal({
+        title: '정말로 이 스케줄을 삭제하시겠습니까?',
+        body: '삭제된 스케줄은 복구할 수 없습니다.',
+        confirmLabel: '삭제',
+        onConfirm: () => {
+          const idx = SCHEDULE_ROWS.findIndex((r) => r.id === id);
+          if (idx !== -1) SCHEDULE_ROWS.splice(idx, 1);
+          renderScheduleTable();
+          showToast('스케줄이 삭제되었습니다.');
+        },
+      });
+    }
+
+    // 체크리스트 관리
+    function openChecklistModal() {
+      document.getElementById('checklist-modal').classList.remove('hidden');
+    }
+    function closeChecklistModal() {
+      document.getElementById('checklist-modal').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // 체크리스트 항목 행 — 등록/수정 모달 공용. 항목이 1개뿐일 때는 삭제 버튼이 불필요하므로 숨김 처리
+    function checklistItemRowHtml(value) {
+      return `
+        <div class="flex gap-2 checklist-item-row">
+          <input type="text" value="${escapeHtml(value)}" placeholder="항목 내용을 입력하세요"
+            class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+          <button onclick="removeChecklistItemRow(this)" class="w-10 h-10 flex items-center justify-center border border-red-200 text-red-500 rounded-lg hover:bg-red-50 shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      `;
+    }
+    function updateChecklistDeleteButtons(list) {
+      const rows = list.querySelectorAll('.checklist-item-row');
+      const showDelete = rows.length > 1;
+      rows.forEach((row) => row.querySelector('button').classList.toggle('hidden', !showDelete));
+    }
+    function addChecklistItemRow(listId) {
+      const list = document.getElementById(listId);
+      if (list.children.length >= 30) return; // 최대 30개까지 추가 가능
+      list.insertAdjacentHTML('beforeend', checklistItemRowHtml(''));
+      updateChecklistDeleteButtons(list);
+    }
+    function removeChecklistItemRow(btn) {
+      const row = btn.closest('.checklist-item-row');
+      const list = row.parentElement;
+      if (list.children.length <= 1) return; // 최소 1개 항목 유지
+      row.remove();
+      updateChecklistDeleteButtons(list);
+    }
+    function openChecklistRegisterModal() {
+      document.getElementById('checklist-title-input').value = '';
+      document.getElementById('checklist-option-type-select').value = '';
+      const list = document.getElementById('checklist-item-list');
+      list.innerHTML = checklistItemRowHtml('');
+      updateChecklistDeleteButtons(list);
+      ['err-checklist-title', 'err-checklist-option', 'err-checklist-items'].forEach(clearFieldError);
+      document.getElementById('checklist-register-modal').classList.remove('hidden');
+    }
+    function closeChecklistRegisterModal() {
+      document.getElementById('checklist-register-modal').classList.add('hidden');
+    }
+
+    function validateChecklistForm(ids) {
+      let valid = true;
+      const titleVal = document.getElementById(ids.title).value.trim();
+      if (!titleVal) { setFieldError(ids.errTitle, '체크리스트 제목을 입력해주세요.'); valid = false; } else clearFieldError(ids.errTitle);
+
+      const optionVal = document.getElementById(ids.option).value;
+      if (!optionVal) { setFieldError(ids.errOption, '옵션 유형을 선택해주세요.'); valid = false; } else clearFieldError(ids.errOption);
+
+      const items = Array.from(document.getElementById(ids.list).querySelectorAll('.checklist-item-row input'))
+        .map((el) => el.value.trim())
+        .filter((v) => v.length > 0);
+      if (items.length === 0) { setFieldError(ids.errItems, '체크리스트 항목을 1개 이상 입력해주세요.'); valid = false; } else clearFieldError(ids.errItems);
+
+      return { valid, titleVal, optionVal, items };
+    }
+
+    function saveChecklistRegister() {
+      const result = validateChecklistForm({
+        title: 'checklist-title-input', errTitle: 'err-checklist-title',
+        option: 'checklist-option-type-select', errOption: 'err-checklist-option',
+        list: 'checklist-item-list', errItems: 'err-checklist-items',
+      });
+      if (!result.valid) return;
+      MY_CHECKLISTS.unshift({ id: checklistIdSeq++, title: result.titleVal, optionType: result.optionVal, items: result.items });
+      closeChecklistRegisterModal();
+      renderMyChecklistTable();
+      showToast('체크리스트가 등록되었습니다.');
+    }
+
+    // 내 체크리스트 — 등록/수정/삭제/렌더링의 단일 소스
+    let checklistIdSeq = 3;
+    const MY_CHECKLISTS = [
+      {
+        id: 1,
+        title: 'HEALTH_ADMIN_2026HH2',
+        optionType: '양호/보통/미흡',
+        items: [
+          '근로자 건강진단 결과 관리 상태',
+          '보건교육 실시 및 기록 관리 상태',
+          '작업환경측정 결과 및 개선조치 이행 상태',
+          '물질안전보건자료(MSDS) 비치 및 게시 상태',
+          '응급처치함 및 안전보건표지 관리 상태',
+          '근골격계 부담작업 유해요인조사 실시 상태',
+        ],
+      },
+      {
+        id: 2,
+        title: '굴착 작업 안전 점검표 (일일)',
+        optionType: '예/아니오',
+        items: [
+          '굴착면 및 흙막이 지보공 이상 유무를 확인하였는가?',
+          '유도자(신호수) 배치 및 장비 접근 통제가 이루어지고 있는가?',
+          '개인 보호구(안전모, 안전화 등) 착용 상태를 확인하였는가?',
+        ],
+      },
+    ];
+
+    function myChecklistRowHtml(item) {
+      return `
+        <tr>
+          <td class="py-3 px-3 text-center text-gray-800">${escapeHtml(item.title)}</td>
+          <td class="py-3 px-3 text-center text-gray-600">${escapeHtml(item.optionType)}</td>
+          <td class="py-3 px-3 text-center text-gray-600">${item.items.length}개</td>
+          <td class="py-3 px-3">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openChecklistEditModal(${item.id})" class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              </button>
+              <button onclick="confirmDeleteChecklist(${item.id})" class="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    function renderMyChecklistTable() {
+      const tbody = document.getElementById('my-checklist-tbody');
+      if (MY_CHECKLISTS.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-400 text-sm">등록된 체크리스트가 없습니다.</td></tr>`;
+      } else {
+        tbody.innerHTML = MY_CHECKLISTS.map(myChecklistRowHtml).join('');
+      }
+    }
+
+    let editingChecklistId = null;
+
+    function openChecklistEditModal(id) {
+      const data = MY_CHECKLISTS.find((c) => c.id === id);
+      if (!data) return;
+      editingChecklistId = id;
+      document.getElementById('edit-checklist-title-input').value = data.title;
+      document.getElementById('edit-checklist-option-type-select').value = data.optionType;
+      const list = document.getElementById('edit-checklist-item-list');
+      list.innerHTML = data.items.map((text) => checklistItemRowHtml(text)).join('');
+      updateChecklistDeleteButtons(list);
+      ['err-edit-checklist-title', 'err-edit-checklist-option', 'err-edit-checklist-items'].forEach(clearFieldError);
+      document.getElementById('checklist-edit-modal').classList.remove('hidden');
+    }
+    function closeChecklistEditModal() {
+      document.getElementById('checklist-edit-modal').classList.add('hidden');
+      editingChecklistId = null;
+    }
+
+    function saveChecklistEdit() {
+      const result = validateChecklistForm({
+        title: 'edit-checklist-title-input', errTitle: 'err-edit-checklist-title',
+        option: 'edit-checklist-option-type-select', errOption: 'err-edit-checklist-option',
+        list: 'edit-checklist-item-list', errItems: 'err-edit-checklist-items',
+      });
+      if (!result.valid) return;
+      const data = MY_CHECKLISTS.find((c) => c.id === editingChecklistId);
+      if (!data) return;
+      data.title = result.titleVal;
+      data.optionType = result.optionVal;
+      data.items = result.items;
+      closeChecklistEditModal();
+      renderMyChecklistTable();
+      showToast('체크리스트가 수정되었습니다.');
+    }
+
+    function confirmDeleteChecklist(id) {
+      openConfirmModal({
+        title: '정말로 이 체크리스트를 삭제하시겠습니까?',
+        body: '삭제된 체크리스트는 복구할 수 없습니다.',
+        confirmLabel: '삭제',
+        onConfirm: () => {
+          const idx = MY_CHECKLISTS.findIndex((c) => c.id === id);
+          if (idx !== -1) MY_CHECKLISTS.splice(idx, 1);
+          renderMyChecklistTable();
+          showToast('체크리스트가 삭제되었습니다.');
+        },
+      });
+    }
+
+    // 기본 체크리스트 상세 (조회) — "기본 체크리스트" 표의 [조회] 클릭 시
+    const BASIC_CHECKLISTS = [
+      {
+        title: '안전보건관리책임자 업무 점검표',
+        optionType: '예/아니오/해당없음',
+        items: [
+          '사업장의 특성을 반영한 산업재해 예방계획을 구체적으로 수립하고 이를 성실히 이행하고 있는가?',
+          '사업장 규모 및 업종에 맞는 안전보건관리규정을 작성하고, 법령 개정 또는 환경 변화에 따라 적절히 변경하여 운영하는가?',
+          '소속 근로자(정기 채용 시, 작업내용 변경 시 등)를 대상으로 법정 안전보건교육을 연간 계획에 따라 누락 없이 실시하는가?',
+          '정해진 주기에 따라 작업환경측정을 실시하고, 측정 결과에 따라 작업환경 개선 및 유해인자 저감 조치를 수행하는가?',
+          '산업재해(또는 아차사고) 발생 시 철저한 원인 조사를 실시하고, 효과성 있는 재발 방지 대책을 수립하여 현장에 적용하는가?',
+          '산업재해(또는 아차사고) 발생 시 정확한 원인 조사를 실시하고, 효과성 있는 재발 방지 대책을 수립하여 현장에 적용하는가?',
+          '사업장 내 발생한 모든 산업재해에 대한 통계를 관련 법령에 따라 정확하게 기록하고 체계적으로 유지 및 관리하고 있는가?',
+          '기계·기구의 방호장치 및 근로자 개인 보호구 구입 시, 안전인증(KCs) 등 법적 적격품 여부를 절차로 확인하고 지급하는가?',
+          '고용노동부령으로 정하는 그 밖의 근로자 유해 및 위험 방지를 위한 각종 안전보건 조치를 누락 없이 이행하고 있는가?',
+        ],
+      },
+      {
+        title: '안전관리자 업무 점검표',
+        optionType: '예/아니오/해당없음',
+        items: [
+          '사업장의 안전에 관한 기술적 사항에 대해 사업주 또는 안전보건관리책임자를 보좌하고 관리감독자에게 지도·조언하고 있는가?',
+          '안전인증대상기계등과 자율안전확인대상기계등 구입 시 적격품 여부를 확인하고 있는가?',
+          '사업장 순회점검, 지도 및 조치의 건의를 정기적으로 실시하고 있는가?',
+          '산업재해 발생의 원인 조사·분석 및 재발 방지를 위한 기술적 지도·조언을 하고 있는가?',
+          '산업재해에 관한 통계의 유지·관리를 위한 지도·조언을 하고 있는가?',
+          '법 또는 법에 따른 명령으로 정한 안전에 관한 사항의 이행에 관한 보좌 및 지도·조언을 하고 있는가?',
+          '업무 수행 내용을 기록·유지하고 있는가?',
+          '위험성평가에 관한 보좌 및 지도·조언을 하고 있는가?',
+          '그 밖에 안전에 관한 사항으로서 고용노동부장관이 정하는 사항을 이행하고 있는가?',
+          '안전관리자 업무 수행을 위한 시설·장비·예산 등 필요한 지원을 받고 있는가?',
+        ],
+      },
+      {
+        title: '보건관리자 업무 점검표',
+        optionType: '예/아니오/해당없음',
+        items: [
+          '사업장의 보건에 관한 기술적 사항에 대해 사업주 또는 안전보건관리책임자를 보좌하고 관리감독자에게 지도·조언하고 있는가?',
+          '물질안전보건자료(MSDS)의 게시 또는 비치에 관한 보좌 및 지도·조언을 하고 있는가?',
+          '산업보건의의 직무(해당 시)를 지원하고 있는가?',
+          '해당 사업장 근로자를 보호하기 위한 응급처치 등 긴급 조치를 하고 있는가?',
+          '작업환경측정 결과에 따른 작업환경 개선에 필요한 보좌 및 지도·조언을 하고 있는가?',
+          '근로자의 건강관리 및 건강증진을 위한 교육·상담을 실시하고 있는가?',
+          '산업재해 발생의 원인 조사·분석 및 재발 방지를 위한 기술적 지도·조언을 하고 있는가?',
+          '업무 수행 내용을 기록·유지하고 있는가?',
+          '위험성평가에 관한 보좌 및 지도·조언을 하고 있는가?',
+          '보건관리자 업무 수행을 위한 시설·장비·예산 등 필요한 지원을 받고 있는가?',
+        ],
+      },
+      {
+        title: '관리감독자 업무 점검표',
+        optionType: '예/아니오/해당없음',
+        items: [
+          '소속 근로자와 함께 작업하는 다른 근로자의 작업방법과 순서를 정하고 지휘·감독하고 있는가?',
+          '소속 근로자의 안전보건에 관한 능력 향상을 위한 교육을 실시하고 있는가?',
+          '작업 전 안전보건점검회의(TBM)를 실시하고 있는가?',
+          '기계·기구 또는 설비의 안전·보건 점검 및 이상 유무를 확인하고 있는가?',
+          '소속 근로자의 개인 보호구 착용 여부를 확인·지도하고 있는가?',
+          '산업재해에 관한 보고 및 응급조치를 하고 있는가?',
+          '작업장 정리·정돈 및 통로 확보 상태를 점검하고 있는가?',
+          '위험성평가 시 유해·위험요인의 파악 및 개선조치 시행에 참여하고 있는가?',
+          '안전장치 및 보호구의 정상 작동 여부를 확인하고 있는가?',
+          '그 밖에 안전보건관리책임자가 지정한 업무를 이행하고 있는가?',
+        ],
+      },
+      {
+        title: '인력평가 평가표 - 안전보건관리책임자',
+        optionType: '양호/보통/미흡',
+        items: [
+          '안전보건경영방침 수립 및 이행 충실도',
+          '안전보건관리규정 작성·운영 적절성',
+          '안전보건교육 계획 수립 및 실시 충실도',
+          '위험성평가 실시 및 개선조치 이행 충실도',
+          '산업재해 예방계획 수립·이행 충실도',
+          '안전보건 예산 편성 및 집행 적절성',
+          '안전보건관리자 등 인력 배치 적절성',
+          '산업재해 발생 시 대응 및 재발방지 조치 충실도',
+          '근로자 의견청취 및 반영 충실도',
+          '안전보건 관련 법령 준수 충실도',
+        ],
+      },
+    ];
+
+    function openChecklistDetailModal(idx) {
+      const data = BASIC_CHECKLISTS[idx];
+      document.getElementById('checklist-detail-title').value = data.title;
+      document.getElementById('checklist-detail-option-type').value = data.optionType;
+      document.getElementById('checklist-detail-items').innerHTML = data.items
+        .map((text) => `<div class="auto-field px-4 py-2.5 border border-gray-200 rounded-lg text-sm">${escapeHtml(text)}</div>`)
+        .join('');
+      document.getElementById('checklist-detail-modal').classList.remove('hidden');
+    }
+    function closeChecklistDetailModal() {
+      document.getElementById('checklist-detail-modal').classList.add('hidden');
+    }
+
+    // 초기화 — 달력 정책(선후관계 자동보정), 인라인 오류 자동 해제, 검색 엔터키, 최초 렌더링
+    bindDateRangeAutoCorrect('reg-start-date', 'reg-end-date');
+    bindDateRangeAutoCorrect('edit-start-date', 'edit-end-date');
+
+    bindClearOnInput('doc-type-select', 'err-reg-doc-type');
+    bindClearOnInput('reg-schedule-title-input', 'err-reg-title');
+    bindClearOnInput('reg-start-date', 'err-reg-start');
+    bindClearOnInput('reg-end-date', 'err-reg-end');
+    bindClearOnInput('edit-doc-type-select', 'err-edit-doc-type');
+    bindClearOnInput('edit-schedule-title-input', 'err-edit-title');
+    bindClearOnInput('edit-start-date', 'err-edit-start');
+    bindClearOnInput('edit-end-date', 'err-edit-end');
+    bindClearOnInput('checklist-title-input', 'err-checklist-title');
+    bindClearOnInput('checklist-option-type-select', 'err-checklist-option');
+    bindClearOnInput('edit-checklist-title-input', 'err-edit-checklist-title');
+    bindClearOnInput('edit-checklist-option-type-select', 'err-edit-checklist-option');
+    document.getElementById('checklist-item-list').addEventListener('input', () => clearFieldError('err-checklist-items'));
+    document.getElementById('edit-checklist-item-list').addEventListener('input', () => clearFieldError('err-edit-checklist-items'));
+
+    document.getElementById('schedule-search-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); onScheduleSearch(); }
+    });
+
+    renderScheduleTable();
+    renderMyChecklistTable();
+  </script>
+</body>
+</html>
