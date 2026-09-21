@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>안전NOW 사업장관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap">
+<style>
+/* ── 토큰: 안전NOW v1 컴포넌트 정의서 기준 ── */
+:root{
+  color-scheme:light;
+  --bg:#EEF0F4; --surface:#FFFFFF; --subtle:#F9FAFB; --muted-bg:#F3F4F6;
+  --line:#E5E7EB; --line-2:#D1D5DB;
+  --text:#1F2937; --text-2:#4B5563; --text-3:#9CA3AF; --text-4:#6B7280;
+  --navy:#1C3A6E; --primary:#2D5FA8; --primary-soft:#E6F1FB; --primary-ink:#0C447C; --primary-line:#BFDBFE; --sky:#7DB5F0;
+  --req:#E24B4A; --danger:#A32D2D; --danger-line:#FECACA;
+  --ok-ink:#276749; --ok-line:#3B6D11;
+  --green-bg:#EAF3DE; --green-ink:#27500A;
+  --amber-bg:#FFFBEB; --amber-ink:#633806; --amber-line:#F4D58D;
+  --red-bg:#FCEBEB; --red-ink:#791F1F;
+  --gray-bg:#F3F4F6; --gray-ink:#374151;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+svg.i.lg{width:20px;height:20px}
+
+/* ── 레이아웃 ── */
+.app{display:flex;min-height:100vh}
+.side{width:248px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.side-logo{display:flex;align-items:center;gap:8px;padding:22px 24px 16px;text-decoration:none}
+.side-logo b{font-size:23px;font-weight:900;letter-spacing:-.03em;color:#111827}
+.side-nav{flex:1;overflow-y:auto;padding:8px 0 12px}
+.nav-a{display:flex;align-items:center;gap:10px;padding:10px 20px 10px 26px;color:#374151;text-decoration:none;font-size:14px;position:relative}
+.nav-a:hover{background:var(--subtle)}
+.nav-a svg{color:var(--text-2)}
+.nav-a.on{color:var(--primary);font-weight:600}
+.nav-a.on svg{color:var(--primary)}
+.nav-a.on::after{content:'';position:absolute;right:0;top:3px;bottom:3px;width:3px;border-radius:3px 0 0 3px;background:var(--primary)}
+.side-user{margin:10px 12px 14px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--muted-bg);color:var(--text-2);display:grid;place-items:center;position:relative;flex-shrink:0}
+.avatar::after{content:'';position:absolute;right:0;bottom:0;width:8px;height:8px;border-radius:50%;background:#22A55B;border:2px solid #fff}
+.side-user .nm{font-size:12px;font-weight:600}
+.side-user .org{font-size:11px;color:var(--text-3)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.page{width:100%;max-width:1480px;margin:0 auto;padding:26px 40px 56px;flex:1}
+.page-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.page-title{display:flex;align-items:center;gap:8px;margin:0;font-size:22px;font-weight:700;color:var(--primary);letter-spacing:-.01em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px}
+.foot{background:#E7EAEF;padding:26px 40px;font-size:12px;color:var(--text-2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.foot b{color:var(--text)}
+
+/* ── 프로토타입 크롬 (제품 UI 아님) ── */
+.proto{background:var(--navy);color:#fff;padding:10px 40px 6px;font-size:12px}
+.proto-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.proto-tag{font-size:10px;font-weight:700;letter-spacing:.1em;background:rgba(255,255,255,.12);color:var(--sky);padding:3px 8px;border-radius:4px}
+.proto-rows{display:flex;flex-direction:column}
+.proto-row{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:start;padding:6px 0;border-top:1px solid rgba(255,255,255,.1)}
+.proto-view{font-weight:700;color:var(--sky);padding-top:3px;white-space:nowrap}
+.proto-groups{display:flex;flex-wrap:wrap;gap:4px 20px}
+.proto-grp{display:flex;align-items:center;flex-wrap:wrap;gap:2px}
+.proto-lbl{color:rgba(255,255,255,.42);font-size:11px;margin-right:4px;white-space:nowrap}
+.proto-grp a{color:rgba(255,255,255,.75);text-decoration:none;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.proto-grp a:hover{background:rgba(255,255,255,.08);color:#fff}
+.proto-grp a.on{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+/* 화면 하단 설명 (프로토타입 전용) */
+.desc{margin-top:28px;border:1px dashed #B8C4D6;border-radius:12px;background:#F7F9FC;padding:20px 24px}
+.desc-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.desc-tag{font-size:10px;font-weight:700;letter-spacing:.1em;background:var(--navy);color:#fff;padding:3px 8px;border-radius:4px}
+.desc-ttl{margin:0;font-size:15px;font-weight:700;color:var(--navy)}
+.desc-scroll{overflow-x:auto}
+.desc-tbl{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--line)}
+.desc-tbl th{background:var(--subtle);text-align:left;font-size:12px;font-weight:600;color:var(--text-2);padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.desc-tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
+.desc-tbl tr:last-child td{border-bottom:none}
+.desc-tbl a{color:var(--primary);font-weight:600}
+.desc-tbl.wide{min-width:980px}
+.desc-tbl.narrow{max-width:760px}
+.desc-list{margin:0;padding-left:18px;font-size:13px;line-height:1.8}
+.desc-foot{margin:10px 0 0;font-size:12px;color:var(--text-4);line-height:1.6}
+.sim-btn{border:1px dashed var(--sky);background:#F5F9FF;color:var(--primary);font-size:12px;font-weight:600;border-radius:6px;padding:5px 10px}
+.sim-btn:hover{background:#EAF3FE}
+
+/* ── 뱃지 ── */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;line-height:1.6}
+.b-green{background:var(--green-bg);color:var(--green-ink)}
+.b-blue{background:var(--primary-soft);color:var(--primary-ink)}
+.b-amber{background:var(--amber-bg);color:var(--amber-ink)}
+.b-red{background:var(--red-bg);color:var(--red-ink)}
+.b-gray{background:var(--gray-bg);color:var(--gray-ink)}
+.badge.dot::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.75}
+/* 유형·연결 방식 뱃지: 상태(채움)와 구분되도록 테두리형 */
+.type{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:1px 8px;border-radius:6px;border:1px solid;white-space:nowrap;background:var(--surface)}
+.type svg.i{width:13px;height:13px}
+.type-HQ{color:var(--navy);border-color:#9DB0CF}
+.type-REGION{color:var(--primary);border-color:var(--primary-line)}
+.origin{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--text-2);border:1px solid var(--line-2);border-radius:4px;padding:0 6px;white-space:nowrap;background:var(--surface)}
+.origin svg.i{width:12px;height:12px}
+
+/* ── 버튼 ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;line-height:1.5;text-decoration:none}
+.btn-p{background:var(--primary);color:#fff}
+.btn-p:hover{background:#244F8E}
+.btn-d{background:var(--danger);color:#fff}
+.btn-d:hover{background:#8C2525}
+.btn-g{background:var(--surface);color:var(--text-2);border-color:var(--line)}
+.btn-g:hover{background:var(--subtle)}
+.btn-g.danger{color:var(--req);border-color:var(--danger-line)}
+.btn-g.danger:hover{background:#FFF5F5}
+.btn-op{background:var(--surface);color:var(--primary);border-color:var(--primary-line)}
+.btn-op:hover{background:#F3F8FE}
+.btn-sm{font-size:12px;padding:5px 10px;gap:4px}
+.btn-lg{padding:11px 22px;font-size:14px}
+.btn[disabled]{opacity:.35;cursor:not-allowed;pointer-events:none}
+.btn-icon{width:40px;height:40px;padding:0}
+
+/* ── 폼 ── */
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:18px 24px}
+.f-full{grid-column:1/-1}
+.fld{min-width:0}
+.f-lbl{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.f-req{color:var(--req);margin-left:-3px}
+.f-input{width:100%;height:40px;border:1px solid var(--line-2);border-radius:8px;padding:0 12px;font-size:14px;background:var(--surface);outline:none}
+.f-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,95,168,.12)}
+.f-input::placeholder{color:var(--text-3)}
+.f-input[readonly]{background:var(--subtle)}
+select.f-input{padding:0 32px 0 12px;appearance:none;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;cursor:pointer}
+textarea.f-input{height:auto;min-height:88px;padding:10px 12px;resize:vertical;line-height:1.6}
+.f-hint{font-size:12px;color:var(--text-3);margin-top:6px}
+.f-err-msg{font-size:12px;color:var(--danger);margin-top:6px}
+.f-ok-msg{font-size:12px;color:var(--ok-ink);margin-top:6px}
+.has-err .f-input,.has-err .file-wrap,.has-err .picker{border-color:var(--req);background:#FFF8F8}
+.is-ok .f-input{border-color:var(--ok-line);background:#F0FFF4}
+.combo{display:flex}
+.combo .f-input{border-radius:8px 0 0 8px}
+.combo .btn{border-radius:0 8px 8px 0;border:1px solid var(--line-2);border-left:none;background:var(--surface);color:var(--text);height:40px;font-weight:500}
+.combo .btn:hover{background:var(--subtle)}
+.file-wrap{display:flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;background:var(--surface);position:relative;height:40px}
+.file-wrap input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-btn{display:flex;align-items:center;padding:0 14px;background:var(--muted-bg);border-right:1px solid var(--line-2);font-size:13px;font-weight:500;white-space:nowrap}
+.file-name{display:flex;align-items:center;gap:6px;padding:0 12px;font-size:13px;color:var(--text-3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-name.has{color:var(--text)}
+.file-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,95,168,.12)}
+.tip{position:relative;display:inline-flex}
+.tip-icon{width:16px;height:16px;border-radius:50%;background:var(--line);color:var(--text-2);font-size:10px;font-weight:700;display:grid;place-items:center;cursor:help;border:none;padding:0}
+.tip-bubble{position:absolute;left:24px;top:-6px;background:var(--text);color:#fff;font-size:12px;font-weight:400;padding:8px 12px;border-radius:6px;width:250px;line-height:1.5;z-index:40;pointer-events:none;opacity:0;transition:opacity .15s}
+.tip-bubble::before{content:'';position:absolute;left:-5px;top:10px;border:5px solid transparent;border-right-color:var(--text);border-left:none}
+.tip:hover .tip-bubble,.tip:focus-within .tip-bubble{opacity:1}
+
+.sec-ttl{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--text);margin:0 0 14px;flex-wrap:wrap}
+.sec-ttl svg{color:var(--text-2)}
+.sec-sub{font-size:12px;font-weight:400;color:var(--text-3);margin-left:4px}
+.divider{border:none;border-top:1px solid var(--line);margin:26px 0}
+
+/* 선택 카드 (사업자 유형 · 연결 방식) */
+.opt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.type-opt{position:relative;display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;cursor:pointer;background:var(--surface);transition:border-color .15s,background .15s}
+.type-opt input{position:absolute;opacity:0;pointer-events:none}
+.type-opt:hover{border-color:#A9B8CC}
+.type-ic{width:36px;height:36px;border-radius:8px;background:var(--muted-bg);color:var(--text-2);display:grid;place-items:center;flex-shrink:0}
+.type-ic.sm{width:30px;height:30px}
+.type-opt .nm{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+.type-opt .ds{display:block;font-size:12px;color:var(--text-4);margin-top:2px;line-height:1.5}
+.type-opt .rule{display:inline-block;margin-top:8px;font-size:11px;font-weight:600;color:var(--text-2);background:var(--muted-bg);padding:1px 7px;border-radius:4px}
+.type-opt .radio{margin-left:auto;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line-2);flex-shrink:0;display:grid;place-items:center;margin-top:2px}
+.type-opt.on{border-color:var(--primary);background:#F6FAFF;box-shadow:0 0 0 3px rgba(45,95,168,.1)}
+.type-opt.on .type-ic{background:var(--primary-soft);color:var(--primary)}
+.type-opt.on .radio{border-color:var(--primary);background:var(--primary)}
+.type-opt.on .radio::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff}
+.type-opt.on .rule{background:var(--primary-soft);color:var(--primary-ink)}
+.type-opt:focus-within{outline:2px solid var(--primary);outline-offset:2px}
+.opt-grid.locked .type-opt{cursor:default}
+.opt-grid.locked .type-opt:not(.on){opacity:.45}
+
+/* 선택된 본사 (17.사용자 선택 — 칩) */
+.picker{min-height:40px;border:1px solid var(--line-2);border-radius:8px;display:flex;align-items:center;gap:8px;padding:0 8px;background:var(--surface);width:100%}
+.picker.locked{background:var(--subtle)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary-ink);border-radius:99px;padding:4px 6px 4px 10px;font-size:13px;font-weight:500;min-width:0}
+.chip .sub{color:#4F74A8;font-size:12px;font-weight:400}
+.picker.locked .chip{padding-right:10px}
+.chip-x{border:none;background:transparent;color:var(--primary-ink);width:20px;height:20px;border-radius:50%;display:grid;place-items:center;padding:0}
+.chip-x:hover{background:rgba(12,68,124,.1)}
+
+/* 본사 검색 목록 (콤보박스) */
+.hq-search{position:relative}
+.hq-search .f-input{padding-left:36px}
+.hq-search .lead{position:absolute;left:12px;top:12px;color:var(--text-3);pointer-events:none;display:flex}
+.combo-list{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(17,24,39,.12);max-height:292px;overflow-y:auto;z-index:30;padding:4px 0;margin:0;list-style:none}
+.combo-head{padding:6px 12px 4px;font-size:11px;color:var(--text-3)}
+.combo-opt{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer}
+.combo-opt[aria-selected="true"]{background:#F0F7FF}
+.combo-opt:hover{background:#F5F9FE}
+.combo-opt .nm{display:block;font-size:13px;font-weight:600}
+.combo-opt .meta{display:block;font-size:12px;color:var(--text-4)}
+.combo-opt mark{background:none;color:var(--primary);font-weight:700}
+.combo-opt .cnt{margin-left:auto;font-size:12px;color:var(--text-3);white-space:nowrap}
+.combo-empty{padding:18px 12px;text-align:center;color:var(--text-3);font-size:13px}
+
+/* ── 검색 (16.검색 확장형) ── */
+.search{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.search .fld-lbl{display:block;font-size:12px;color:var(--text-4);margin-bottom:4px}
+.search select{width:128px}
+.search .kw{flex:1;min-width:220px}
+.search .btn-icon{background:var(--navy);color:#fff}
+.search .btn-icon:hover{background:#15305C}
+
+/* 콜아웃 */
+.callout{display:flex;align-items:center;gap:10px;border-radius:8px;padding:10px 14px;font-size:13px;border:1px solid;flex-wrap:wrap}
+.callout.amber{background:var(--amber-bg);border-color:var(--amber-line);color:var(--amber-ink)}
+.callout.blue{background:var(--primary-soft);border-color:var(--primary-line);color:var(--primary-ink)}
+.callout.red{background:var(--red-bg);border-color:#F3B4B4;color:var(--red-ink)}
+.callout.green{background:#F1F8EA;border-color:#C6E0A8;color:var(--green-ink)}
+.callout.gray{background:var(--subtle);border-color:var(--line);color:var(--gray-ink)}
+.callout .txt{line-height:1.6;flex:1;min-width:200px}
+
+/* ── 테이블 (04.테이블 정책) ── */
+.list-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 12px;flex-wrap:wrap}
+.count{font-size:13px;color:var(--text-2)}
+.count b{color:var(--text)}
+.tbl-wrap{overflow-x:auto;border-top:1px solid var(--line)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:1260px}
+.tbl.inner{min-width:1060px}
+.tbl th{background:var(--subtle);padding:11px 12px;text-align:center;font-weight:600;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl.inner th{background:var(--surface)}
+.tbl td{padding:12px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
+.tbl td.l,.tbl th.l{text-align:left}
+.tbl td.l{min-width:200px}
+.tbl td.num{white-space:nowrap}
+.tbl tbody tr.click{cursor:pointer}
+.tbl tbody tr.click:hover td{background:var(--subtle)}
+.tbl tbody tr.pending td{background:#FFFDF5}
+.tbl tbody tr.pending.click:hover td{background:#FFF8E6}
+.tbl .empty td{color:var(--text-3);padding:40px 0}
+.cell-sub{font-size:12px;color:var(--text-4);margin-top:2px;white-space:nowrap}
+.cell-sub.warn{color:var(--danger);font-weight:600}
+.conn-cell{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tbl tbody tr.grp td{background:#F4F6FA;border-top:2px solid var(--line-2)}
+.tbl tbody tr.grp:first-child td{border-top:none}
+.tbl tbody tr.grp.click:hover td{background:#ECF0F7}
+.tbl tr.grp .name-cell{font-weight:700}
+.tbl tr.ctx td{color:var(--text-3)}
+.tbl tr.ctx .type{opacity:.6}
+.tree{display:flex;align-items:center;gap:8px}
+.tree svg.i{color:var(--navy)}
+.elbow{width:14px;height:20px;margin:-14px 0 0 7px;border-left:1.5px solid var(--line-2);border-bottom:1.5px solid var(--line-2);border-bottom-left-radius:5px;flex-shrink:0}
+.mgmt{display:flex;gap:6px;justify-content:center}
+.dash{color:var(--line-2)}
+.name-cell{font-weight:500;color:var(--text)}
+.pg{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:20px}
+.pg-btn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--text-4);background:transparent;border:none}
+.pg-btn:hover{background:var(--muted-bg)}
+.pg-btn.active{background:var(--navy);color:#fff}
+.pg-btn.arrow{color:var(--text-3)}
+.pg-btn[disabled]{color:var(--line-2);cursor:not-allowed;background:transparent}
+
+/* ── 본사 연결 패널 ── */
+.conn{border:1px solid var(--line);border-radius:10px}
+.conn-hd{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--subtle);border-bottom:1px solid var(--line);flex-wrap:wrap;border-radius:10px 10px 0 0}
+.conn-hd .t{font-size:13px;font-weight:700}
+.conn-hd .r{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.conn-body{padding:16px;display:flex;flex-direction:column;gap:18px}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.kv .k{font-size:12px;color:var(--text-3);margin-bottom:2px}
+.kv .v{font-size:13px;font-weight:500}
+.kv .v.warn{color:var(--danger);font-weight:600}
+.steps{display:flex;align-items:flex-start;list-style:none;margin:0;padding:0}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;min-width:0}
+.step::before{content:'';position:absolute;top:13px;right:50%;width:100%;height:2px;background:var(--line)}
+.step:first-child::before{display:none}
+.step.done::before,.step.cur::before,.step.fail::before{background:var(--primary)}
+.step-dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:2px solid var(--line-2);color:var(--text-3);position:relative;z-index:1;font-size:12px;font-weight:700}
+.step-dot svg.i{width:14px;height:14px;stroke-width:2.6}
+.step.done .step-dot{background:var(--primary);border-color:var(--primary);color:#fff}
+.step.cur .step-dot{border-color:#D9A320;color:#B7800F;background:var(--amber-bg)}
+.step.fail .step-dot{background:var(--danger);border-color:var(--danger);color:#fff}
+.step-lbl{font-size:12px;font-weight:600;margin-top:6px}
+.step-date{font-size:11px;color:var(--text-3)}
+.step.cur .step-date{color:#B7800F;font-weight:600}
+.step.fail .step-date{color:var(--danger);font-weight:600}
+.sum{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sum .s{display:inline-flex;gap:6px;align-items:baseline;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--text-2);background:var(--surface)}
+.sum .s b{font-size:16px;color:var(--text)}
+.sum .s.warn{border-color:var(--amber-line);background:var(--amber-bg);color:var(--amber-ink)}
+.sum .s.warn b{color:var(--amber-ink)}
+.sum .s.info{border-color:var(--primary-line);background:var(--primary-soft);color:var(--primary-ink)}
+.sum .s.info b{color:var(--primary-ink)}
+.sum .btn{margin-left:auto}
+.link-btn{border:none;background:none;padding:0;color:var(--primary);font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:2px;display:inline-flex;align-items:center;gap:4px;text-align:left}
+
+/* 하단 액션 바 (08.버튼 정책) */
+.actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:28px;flex-wrap:wrap}
+.actions .grp{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── 모달 (03-6 얼럿 / 03-7 컨펌) ── */
+.overlay{position:fixed;inset:0;background:rgba(17,24,39,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:300;animation:fade .15s ease}
+.modal{background:var(--surface);border-radius:12px;padding:24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:pop .18s ease}
+.m-icon{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;margin-bottom:12px}
+.m-warn{background:var(--amber-bg);color:#854D0E}.m-err{background:var(--red-bg);color:#9B1C1C}.m-info{background:var(--primary-soft);color:#185FA5}
+.m-title{font-size:16px;font-weight:700;margin:0 0 8px;text-wrap:balance}
+.m-desc{font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:20px}
+.m-desc b{color:var(--text);font-weight:600}
+.m-acts{display:flex;gap:8px;justify-content:flex-end}
+
+/* ── 토스트 (03-5) ── */
+.toast-stack{position:fixed;top:18px;right:18px;z-index:400;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:8px;font-size:13px;min-width:260px;max-width:360px;box-shadow:0 4px 12px rgba(0,0,0,.12);background:var(--surface);animation:slide .2s ease}
+.t-success{border-left:3px solid var(--ok-line)}.t-error{border-left:3px solid var(--danger)}
+.t-ic{flex-shrink:0;margin-top:1px}
+.t-success .t-ic{color:var(--ok-ink)}.t-error .t-ic{color:#9B1C1C}
+.t-title{font-weight:600;font-size:13px}
+.t-msg{font-size:12px;color:var(--text-2);margin-top:2px}
+.t-close{margin-left:auto;border:none;background:none;color:var(--text-3);padding:0 0 0 6px}
+
+/* ── 지사 시점 화면 ── */
+body.public .side{display:none}
+.biz-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.biz-name{margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em}
+.biz-meta{font-size:13px;color:var(--text-4);margin-top:6px}
+.status-hero{display:flex;gap:14px;align-items:flex-start}
+.hero-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+.m-ok{background:var(--green-bg);color:var(--ok-ink)}
+.hero-title{margin:2px 0 4px;font-size:17px;font-weight:700;text-wrap:balance}
+.hero-desc{margin:0;font-size:13px;color:var(--text-2);line-height:1.7;max-width:68ch}
+.hero-desc b{color:var(--text);font-weight:600}
+.invite-wrap{display:grid;grid-template-columns:minmax(0,340px) minmax(0,460px);gap:32px;justify-content:center;align-items:start;padding-top:8px}
+.alim-lbl{font-size:12px;color:var(--text-4);margin-bottom:8px;font-weight:600}
+.alim-bubble{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(17,24,39,.06)}
+.alim-hd{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--muted-bg);font-size:12px;font-weight:700}
+.alim-body{padding:14px;font-size:13px;line-height:1.75}
+.alim-btn{display:block;width:calc(100% - 28px);margin:0 14px 14px;height:38px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600}
+.alim-btn:hover{background:var(--subtle)}
+.alim-only{max-width:360px;margin:0 auto;padding-top:8px}
+.land{padding:32px 32px 28px}
+.land:focus{outline:none}
+.land-logo{display:flex;align-items:center;gap:8px;margin-bottom:22px}
+.land-logo b{font-size:20px;font-weight:900;letter-spacing:-.03em}
+.land-title{margin:0 0 8px;font-size:21px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.land-desc{margin:0;font-size:14px;color:var(--text-2);line-height:1.7}
+.land-desc b{color:var(--text);font-weight:600}
+.land-logo.center{justify-content:center;gap:12px;margin-bottom:28px}
+.land-logo.center b{font-size:34px}
+.land-exp{margin:8px 0 0;font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.land-sub{font-size:14px;font-weight:600;margin:22px 0 8px}
+.reg-info{margin:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.reg-info div{display:flex;gap:12px;padding:12px 18px;font-size:14px;border-bottom:1px solid var(--line)}
+.reg-info div:last-child{border-bottom:none}
+.reg-info dt{width:96px;flex-shrink:0;color:var(--text-3)}
+.reg-info dd{margin:0}
+.combo .btn.id-check{color:var(--primary);border:1px solid var(--primary);font-weight:600;min-width:96px}
+.combo .btn.id-check:hover{background:#F3F8FE}
+.back-login{display:flex;align-items:center;justify-content:center;gap:4px;margin:18px auto 0;border:none;background:none;font-size:14px;color:var(--text);text-decoration:underline;text-underline-offset:3px}
+.invite-wrap + .desc{max-width:832px;margin-inline:auto}
+.auth-btn{width:100%;height:44px;border:1px solid var(--primary);border-radius:8px;background:var(--surface);color:var(--primary);font-size:14px;font-weight:600}
+.auth-btn:hover{background:#F3F8FE}
+.auth-ok{height:44px;border-radius:8px;background:var(--green-bg);color:var(--ok-ink);display:grid;place-items:center;font-size:14px;font-weight:600}
+.join-btn{width:100%;height:48px;margin-top:12px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:15px;font-weight:700}
+.join-btn:hover{background:#244F8E}
+.join-btn[disabled]{background:#8FB6E0;cursor:not-allowed}
+.proto-note{margin:10px 0 0;font-size:11px;color:var(--primary);text-align:center;border:1px dashed var(--sky);border-radius:6px;padding:5px 8px;background:#F5F9FF}
+.land-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:12px 0 4px}
+.land-state .land-title{margin:4px 0 0}
+.land-state .land-desc{max-width:36ch}
+.land-state .btn{margin-top:8px}
+@media (max-width:760px){.invite-wrap{grid-template-columns:1fr}.land{padding:24px 18px}}
+
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{transform:translateY(6px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes slide{from{transform:translateX(12px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── 반응형 ── */
+@media (max-width:1100px){.side{display:none}}
+@media (max-width:760px){
+  .page{padding:18px 16px 40px}.proto,.foot{padding-left:16px;padding-right:16px}
+  .desc{padding:16px}
+  .proto-row{grid-template-columns:1fr;gap:4px}
+  .f-row,.opt-grid,.kv{grid-template-columns:1fr}
+  .search select{width:100%}
+  .search>div:not(.kw){flex:1}
+  .card{padding:18px 16px}
+  .toast-stack{top:auto;bottom:16px;right:16px;left:16px;align-items:center}
+  .step-lbl{font-size:11px}
+}
+</style>
+<style>
+/* ── 사업장관리 전용 ── */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.biz-cell{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tbl td.grp-cell{background:#F7F9FC;vertical-align:top;border-right:1px solid var(--line);cursor:default}
+.tbl tbody tr.click:hover td.grp-cell{background:#F7F9FC}
+.tbl tbody tr.grp-start td{border-top:2px solid var(--line-2)}
+.tbl tbody tr.grp-start:first-child td{border-top:none}
+.card-ttl{display:flex;align-items:center;gap:8px;margin:0 0 16px;font-size:15px;font-weight:700}
+.card-ttl svg{color:var(--text-2)}
+.sub-card{margin-top:16px}
+.info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 32px}
+.info-grid .k,.role-grid .k{font-size:12px;color:var(--text-3);margin-bottom:2px}
+.info-grid .v{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.role-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 32px}
+.role-grid .v{font-size:14px;font-weight:600}
+.role-grid .v.empty{color:var(--text-3);font-weight:400}
+.tbl.plain{min-width:880px}
+.tbl tr.tpl-row td{background:#FAFBFD;padding:14px 16px;text-align:left}
+.tpl-box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px}
+.tpl-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tpl-bar select{width:130px}
+.tpl-item{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.tpl-item + .tpl-item{margin-top:6px}
+.tpl-item .cnt{color:var(--text-3)}
+.tpl-empty{padding:18px;text-align:center;color:var(--text-3);font-size:13px}
+.tpl-toggle svg.i{transition:transform .15s}
+.tpl-toggle.open svg.i{transform:rotate(180deg)}
+.btn-ico{width:34px;height:32px;padding:0}
+.hol-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.hol-bar select{width:120px}
+.hol-note{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-3);margin-top:10px}
+.modal.form-modal{max-width:520px}
+.page-note{margin-bottom:16px}
+@media (max-width:760px){.info-grid,.role-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="app">
+  <aside class="side" aria-label="주 메뉴">
+    <a class="side-logo" href="#/hq" aria-label="안전NOW 홈">
+      <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#1C3A6E"/></linearGradient></defs><path d="M4 7c9-4 23-4 32 0-1 14-7 25-16 30C11 32 5 21 4 7Z" fill="url(#lg)"/><path d="M11 13c6-2 13-2 18 0-1 7-4 13-9 16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+      <b>안전NOW</b>
+    </a>
+    <nav class="side-nav" id="sideNav"></nav>
+    <div class="side-user">
+      <div class="avatar"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
+      <div><div class="nm" id="userName">강민호 님 · 사업장소유주</div><div class="org" id="userOrg">(주)안전건설</div></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="proto" role="region" aria-label="프로토타입 도구">
+      <div class="proto-head"><span class="proto-tag">PROTOTYPE</span></div>
+      <nav class="proto-rows" id="protoLinks" aria-label="화면 바로가기">
+        <div class="proto-row">
+          <span class="proto-view">본사 시점</span>
+          <div class="proto-groups">
+            <div class="proto-grp"><span class="proto-lbl">목록</span><a href="#/hq" data-r="hq">사업장 목록</a></div>
+            <div class="proto-grp"><span class="proto-lbl">등록</span><a href="#/hq/new" data-r="hq/new">사업장 등록</a></div>
+            <div class="proto-grp"><span class="proto-lbl">상세</span><a href="#/hq/wp/58" data-r="hq/wp/58">(주)안전건설</a><a href="#/hq/wp/61" data-r="hq/wp/61">판교 오피스 신축현장</a><a href="#/hq/wp/64" data-r="hq/wp/64">지사 사업장(조회)</a></div>
+            <div class="proto-grp"><span class="proto-lbl">수정</span><a href="#/hq/wp/58/edit" data-r="hq/wp/58/edit">(주)안전건설(삭제 불가)</a><a href="#/hq/wp/75/edit" data-r="hq/wp/75/edit">여의도 안전교육센터(삭제 가능)</a></div>
+          </div>
+        </div>
+        <div class="proto-row">
+          <span class="proto-view">지사 시점</span>
+          <div class="proto-groups">
+            <div class="proto-grp"><span class="proto-lbl">목록</span><a href="#/br/33" data-r="br/33">목포지사(연결됨)</a><a href="#/br/57" data-r="br/57">광주지사(승인 대기)</a></div>
+            <div class="proto-grp"><span class="proto-lbl">등록</span><a href="#/br/33/new" data-r="br/33/new">사업장 등록</a></div>
+            <div class="proto-grp"><span class="proto-lbl">상세</span><a href="#/br/33/wp/64" data-r="br/33/wp/64">(주)안전건설 목포지사</a><a href="#/br/33/wp/66" data-r="br/33/wp/66">목포신항 물류센터 현장</a></div>
+            <div class="proto-grp"><span class="proto-lbl">수정</span><a href="#/br/33/wp/66/edit" data-r="br/33/wp/66/edit">목포신항 물류센터 현장</a></div>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <main class="page" id="view" tabindex="-1"></main>
+
+    <footer class="foot">
+      <div>사업장관리 화면 프로토타입 — 입력한 내용은 새로고침하면 처음 상태로 돌아갑니다.</div>
+    </footer>
+  </div>
+</div>
+<div class="toast-stack" id="toasts" aria-live="polite"></div>
+<div id="modalRoot"></div>
+
+<script>
+/* ═══ 아이콘 ═══ */
+const P = {
+  building:'<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
+  factory:'<path d="M2 20V9l6 4V9l6 4V4h8v16Z"/><path d="M9 16h1M13 16h1M17 16h1"/>',
+  clipboard:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 12h6M9 16h4"/>',
+  pin:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+  briefcase:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  wallet:'<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  layers:'<path d="m12 2 10 5-10 5L2 7Z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+  external:'<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  plus:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  checkC:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>'
+};
+const ic = (n, cls='') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+
+document.getElementById('sideNav').innerHTML = `
+  <a class="nav-a" href="FRD-BUSN.html">${ic('building')}사업자관리</a>
+  <a class="nav-a on" id="navWp" href="#/hq" aria-current="page">${ic('factory')}사업장관리</a>`;
+
+/* ═══ 데이터 (예시) ═══ */
+const TODAY = '2026-09-15';
+const HQ_ID = 12;
+const TYPE = { HQ:{ label:'본사', icon:'building' }, REGION:{ label:'지사', icon:'pin' } };
+/* 사업자관리 프로토타입과 같은 사업자 */
+const BIZ = {
+  12: { id:12, type:'HQ', name:'(주)안전건설', bizNo:'3612002537', owner:'강민호' },
+  33: { id:33, type:'REGION', parentId:12, status:'LINKED', name:'(주)안전건설 목포지사', bizNo:'4118614428', owner:'박도윤' },
+  15: { id:15, type:'REGION', parentId:12, status:'LINKED', name:'(주)안전건설 순천지사', bizNo:'4168600917', owner:'서지훈' },
+  57: { id:57, type:'REGION', parentId:12, status:'PENDING', name:'(주)안전건설 광주지사', bizNo:'4048210593', owner:'최태연' }
+};
+const INDUSTRY = [
+  { code:'41112', name:'아파트 건설업' },
+  { code:'41119', name:'기타 공동 주택 건설업' },
+  { code:'41221', name:'사무 및 상업용 건물 건설업' },
+  { code:'41229', name:'기타 비주거용 건물 건설업' },
+  { code:'42311', name:'도로 건설업' },
+  { code:'52101', name:'일반 창고업' },
+  { code:'68112', name:'비주거용 건물 임대업' },
+  { code:'75330', name:'건물 및 산업설비 청소업' }
+];
+const TPL = [
+  { name:'소방 등(건설 제외) 안전관리자 선임서, 자격증, 직무교육 이수 실적', count:0 },
+  { name:'안전보건담당자의 선임서, 직무교육 이수 실적', count:1 },
+  { name:'안전보건협의체', count:1 },
+  { name:'노사협의체', count:1 },
+  { name:'관리감독자의 선임서, 직무교육 이수 실적', count:1 }
+];
+const tpl = (...idx) => idx.map(i => ({ ...TPL[i] }));
+let WP = [
+  { id:58, bizId:12, name:'(주)안전건설', mgmtNo:'36120025371', bizNo:'3612002537', addr:'서울 영등포구 여의대로 108', addrDetail:'(주)안전건설 3층', industry:'41119', workers:36, amount:1600000000, createdAt:'2026-04-24',
+    roles:{ owner:'강민호', chief:'윤재우', safety:'조현석', health:'백지영', supervisor:'한지훈' },
+    projects:[
+      { name:'2026년 본사 사옥 신축공사', biz:'(주)안전건설', from:'2026-04-27', to:'2027-04-26', role:'도급', status:'진행중', templates:[] },
+      { name:'2026년 본사 사옥 신축공사', biz:'(주)안전건설', from:'2026-04-24', to:'2027-04-23', role:'도급', status:'진행중', templates:tpl(0,1,2,3,4) },
+      { name:'(주)안전건설', biz:'(주)안전건설', from:null, to:null, role:'주관', status:'진행중', templates:tpl(1,2) }
+    ],
+    budgets:[ { name:'2026년 본사 사옥 신축공사', code:'42311', amount:150000000 }, { name:'2026년 본사 사옥 신축공사', code:'41119', amount:500000000 }, { name:'(주)안전건설', code:'41119', amount:1600000000 } ],
+    holidays:[] },
+  { id:61, bizId:12, name:'판교 오피스 신축현장', mgmtNo:'36120025372', bizNo:'3612002537', addr:'경기 성남시 분당구 판교역로 235', addrDetail:'현장사무소 2층', industry:'41221', workers:52, amount:4200000000, createdAt:'2026-06-10',
+    roles:{ owner:'강민호', chief:'윤재우', safety:'정다은', health:'백지영', supervisor:'오민석' },
+    projects:[ { name:'판교 오피스 신축공사', biz:'(주)안전건설', from:'2026-06-15', to:'2028-02-28', role:'주관', status:'진행중', templates:tpl(1,2,4) } ],
+    budgets:[ { name:'판교 오피스 신축공사', code:'41221', amount:320000000 } ],
+    holidays:[ { date:'2026-10-02', name:'현장 창립기념일', createdAt:'2026-09-01' } ] },
+  { id:70, bizId:15, name:'(주)안전건설 순천지사', mgmtNo:'41686009171', bizNo:'4168600917', addr:'전남 순천시 중앙로 45', addrDetail:'2층', industry:'42311', workers:12, amount:620000000, createdAt:'2026-05-15',
+    roles:{ owner:'서지훈', chief:'서지훈', safety:'김태오', health:'', supervisor:'배수빈' },
+    projects:[ { name:'순천 연향동 도로 개설공사', biz:'(주)안전건설 순천지사', from:'2026-05-20', to:'2026-12-31', role:'도급', status:'진행중', templates:[] } ],
+    budgets:[ { name:'순천 연향동 도로 개설공사', code:'42311', amount:62000000 } ],
+    holidays:[] },
+  { id:64, bizId:33, name:'(주)안전건설 목포지사', mgmtNo:'41186144281', bizNo:'4118614428', addr:'전남 목포시 영산로 75', addrDetail:'4층', industry:'41119', workers:18, amount:850000000, createdAt:'2026-06-25',
+    roles:{ owner:'박도윤', chief:'박도윤', safety:'이서준', health:'김나래', supervisor:'장현우' },
+    projects:[ { name:'목포 하당 공동주택 신축공사', biz:'(주)안전건설 목포지사', from:'2026-07-01', to:'2027-12-31', role:'주관', status:'진행중', templates:tpl(0,1,2) } ],
+    budgets:[ { name:'목포 하당 공동주택 신축공사', code:'41119', amount:85000000 } ],
+    holidays:[] },
+  { id:73, bizId:57, name:'(주)안전건설 광주지사', mgmtNo:'40482105931', bizNo:'4048210593', addr:'전남광주통합특별시 남구 대남대로 254', addrDetail:'', industry:'41112', workers:9, amount:300000000, createdAt:'2026-07-15',
+    roles:{ owner:'최태연', chief:'최태연', safety:'', health:'', supervisor:'' },
+    projects:[], budgets:[], holidays:[] },
+  { id:66, bizId:33, name:'목포신항 물류센터 현장', mgmtNo:'41186144282', bizNo:'4118614428', addr:'전남 목포시 해양대학로 59', addrDetail:'물류센터 B동', industry:'52101', workers:24, amount:null, createdAt:'2026-07-20',
+    roles:{ owner:'박도윤', chief:'박도윤', safety:'이서준', health:'', supervisor:'문지호' },
+    projects:[], budgets:[],
+    holidays:[ { date:'2026-08-14', name:'하계휴가', createdAt:'2026-07-25' } ] },
+  { id:75, bizId:12, name:'여의도 안전교육센터', mgmtNo:'36120025373', bizNo:'3612002537', addr:'서울 영등포구 국제금융로 10', addrDetail:'12층', industry:'68112', workers:6, amount:null, createdAt:'2026-08-12',
+    roles:{ owner:'강민호', chief:'윤재우', safety:'조현석', health:'', supervisor:'' },
+    projects:[], budgets:[], holidays:[] }
+];
+
+/* ═══ 공통 헬퍼 ═══ */
+const $ = (s, r=document) => r.querySelector(s);
+const view = document.getElementById('view');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const go = h => { if (location.hash === h) route(); else location.hash = h; };
+function josa(word, withBatchim, without){
+  const code = String(word).trim().slice(-1).charCodeAt(0);
+  if (code < 0xAC00 || code > 0xD7A3) return `${withBatchim}(${without})`;
+  return (code - 0xAC00) % 28 ? withBatchim : without;
+}
+const fmtBiz = v => { const d = String(v).replace(/\D/g,'').slice(0,10); return d.length > 5 ? `${d.slice(0,3)}-${d.slice(3,5)}-${d.slice(5)}` : d.length > 3 ? `${d.slice(0,3)}-${d.slice(3)}` : d; };
+const fmtDateKo = d => { const [y,m,dd] = d.split('-'); return `${y}년 ${m}월 ${dd}일`; };
+const dow = d => ['일','월','화','수','목','금','토'][new Date(d + 'T00:00:00').getDay()];
+const krw = n => {
+  if (!n) return '';
+  const eok = Math.floor(n / 1e8), man = Math.floor((n % 1e8) / 1e4), won = n % 1e4;
+  return [eok ? `${eok.toLocaleString()}억` : '', man ? `${man.toLocaleString()}만` : '', won ? won.toLocaleString() : ''].filter(Boolean).join(' ') + '원';
+};
+const industryOf = code => INDUSTRY.find(i => i.code === code);
+const isConstruction = code => /^4[12]/.test(code || '');
+const typeBadge = t => `<span class="type type-${t}">${ic(TYPE[t].icon)}${TYPE[t].label}</span>`;
+const opt = (v, l, cur) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${l}</option>`;
+
+/* ═══ 시점(본사 / 지사) ═══ */
+let CTX = { mode:'hq' };
+const base = () => CTX.mode === 'hq' ? '#/hq' : `#/br/${CTX.bizId}`;
+const isLinkedBranchOfHq = b => b.type === 'REGION' && b.parentId === HQ_ID && b.status === 'LINKED';
+/* 본사: 본사 사업장 + 연결됨 지사 사업장 / 지사: 해당 지사 사업장만 */
+const visibleWP = () => WP.filter(w => CTX.mode === 'hq' ? (w.bizId === HQ_ID || isLinkedBranchOfHq(BIZ[w.bizId])) : w.bizId === CTX.bizId);
+const canEdit = w => CTX.mode === 'hq' ? w.bizId === HQ_ID : w.bizId === CTX.bizId;
+function setUserFor(){
+  const b = BIZ[CTX.mode === 'hq' ? HQ_ID : CTX.bizId];
+  $('#userName').textContent = `${b.owner} 님 · 사업장소유주`;
+  $('#userOrg').textContent = b.name;
+  $('#navWp').setAttribute('href', base());
+}
+function messageView(title, tone, text){
+  view.innerHTML = `<div class="page-hd"><h1 class="page-title">${ic('factory','lg')}${title}</h1></div>
+    <div class="card"><div class="callout ${tone}">${ic(tone === 'red' ? 'alert' : 'info')}<span class="txt">${text}</span></div>
+    <div class="actions"><a class="btn btn-g btn-lg" href="${base()}">${ic('list')}목록으로</a></div></div>`;
+}
+
+/* ═══ 사업장 목록 ═══ */
+const LS = { key:'', biz:'', q:'', page:1 };
+const PER_PAGE = 10;
+
+function pagerHtml(page, pages){
+  let nums = '';
+  const start = Math.floor((page-1)/10)*10 + 1, end = Math.min(pages, start+9);
+  for (let p = start; p <= end; p++) nums += `<button type="button" class="pg-btn ${p===page?'active':''}" data-pg="${p}" ${p===page?'aria-current="page"':''}>${p}</button>`;
+  return `<nav class="pg" aria-label="페이지 이동">
+    <button type="button" class="pg-btn arrow" data-pg="1" ${page===1?'disabled':''} aria-label="처음 페이지">«</button>
+    <button type="button" class="pg-btn arrow" data-pg="${page-1}" ${page===1?'disabled':''} aria-label="이전 페이지">‹</button>
+    ${nums}
+    <button type="button" class="pg-btn arrow" data-pg="${page+1}" ${page===pages?'disabled':''} aria-label="다음 페이지">›</button>
+    <button type="button" class="pg-btn arrow" data-pg="${pages}" ${page===pages?'disabled':''} aria-label="마지막 페이지">»</button>
+  </nav>`;
+}
+
+function renderList(){
+  if (LS.key !== base()) Object.assign(LS, { key:base(), biz:'', q:'', page:1 });
+  const all = visibleWP();
+  const bizOptions = [...new Set(all.map(w => w.bizId))].map(id => BIZ[id])
+    .sort((a,b) => (a.type === 'HQ' ? 0 : 1) - (b.type === 'HQ' ? 0 : 1) || a.name.localeCompare(b.name));
+  const q = LS.q.trim().toLowerCase(), qd = q.replace(/-/g,'');
+  const rows = all
+    .filter(w => (!LS.biz || w.bizId === +LS.biz)
+      && (!q || w.name.toLowerCase().includes(q) || (/^\d+$/.test(qd) && w.mgmtNo.includes(qd)) || `${w.addr} ${w.addrDetail}`.toLowerCase().includes(q)))
+    /* 사업자별로 묶기: 본사 먼저 · 지사는 이름순, 같은 사업자 안에서는 등록일 최신순 */
+    .sort((a,b) => bizOptions.findIndex(x => x.id === a.bizId) - bizOptions.findIndex(x => x.id === b.bizId)
+      || b.createdAt.localeCompare(a.createdAt) || b.id - a.id);
+  const pages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
+  if (LS.page > pages) LS.page = pages;
+  const pageRows = rows.slice((LS.page-1)*PER_PAGE, LS.page*PER_PAGE);
+  const filtered = LS.biz || LS.q;
+  const me = CTX.mode === 'br' ? BIZ[CTX.bizId] : null;
+
+  view.innerHTML = `
+  <div class="page-hd"><h1 class="page-title">${ic('factory','lg')}사업장관리</h1></div>
+  ${me && me.status !== 'LINKED' ? `<div class="callout gray page-note">${ic('info')}<span class="txt">본사 연결 승인 전입니다. 승인되면 <b>${esc(BIZ[me.parentId].name)}</b>에서도 이 사업장들을 조회할 수 있습니다.</span></div>` : ''}
+  <div class="card">
+    <form class="search" id="searchForm" role="search">
+      ${CTX.mode === 'hq' ? `<div><label class="fld-lbl" for="fBiz">사업자</label>
+        <select class="f-input" id="fBiz" style="width:220px">${opt('', '전체', LS.biz)}${bizOptions.map(b => opt(b.id, esc(b.name), LS.biz)).join('')}</select></div>` : ''}
+      <div class="kw"><label class="fld-lbl" for="fQ">검색어</label>
+        <input class="f-input" id="fQ" value="${esc(LS.q)}" placeholder="사업장, 사업장관리번호, 주소로 검색"></div>
+      <button class="btn btn-icon" type="submit" aria-label="검색">${ic('search')}</button>
+    </form>
+    <div class="list-bar">
+      <span class="count">${filtered ? '검색 결과' : '전체'} <b class="num">${rows.length}</b>건</span>
+      <a class="btn btn-p" href="${base()}/new">${ic('plus')}등록</a>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th class="l" style="width:240px">사업자</th>
+          <th style="width:130px">사업자등록번호</th>
+          <th class="l">사업장</th>
+          <th style="width:130px">사업장관리번호</th>
+          <th class="l">주소</th>
+          <th style="width:100px">상시근로자수</th>
+          <th style="width:104px">등록일</th>
+        </tr></thead>
+        <tbody>${pageRows.length ? pageRows.map((w, i) => {
+            const b = BIZ[w.bizId], start = i === 0 || pageRows[i-1].bizId !== w.bizId;
+            const next = start ? pageRows.slice(i).findIndex(x => x.bizId !== w.bizId) : 0;
+            const span = next === -1 ? pageRows.length - i : next;
+            return `
+          <tr class="click ${start ? 'grp-start' : ''}" data-id="${w.id}" tabindex="0">
+            ${start ? `<td class="l grp-cell" rowspan="${span}"><span class="biz-cell">${typeBadge(b.type)}${esc(b.name)}</span></td>
+            <td class="num grp-cell" rowspan="${span}">${fmtBiz(b.bizNo)}</td>` : ''}
+            <td class="l name-cell">${esc(w.name)}</td>
+            <td class="num">${w.mgmtNo}</td>
+            <td class="l">${esc(w.addr)}</td>
+            <td class="num">${w.workers}명</td>
+            <td class="num">${w.createdAt}</td>
+          </tr>`; }).join('')
+          : `<tr class="empty"><td colspan="7">${filtered ? '검색 결과가 없습니다.' : '등록된 사업장이 없습니다.'}</td></tr>`}</tbody>
+      </table>
+    </div>
+    ${pagerHtml(LS.page, pages)}
+  </div>
+  ${CTX.mode === 'hq' ? DESC_LIST : ''}`;
+
+  $('#searchForm').addEventListener('submit', e => {
+    e.preventDefault();
+    Object.assign(LS, { biz:$('#fBiz')?.value || '', q:$('#fQ').value, page:1 });
+    renderList();
+  });
+  view.querySelectorAll('[data-pg]').forEach(btn => btn.addEventListener('click', () => { LS.page = +btn.dataset.pg; renderList(); window.scrollTo({ top:0 }); }));
+  const tbody = view.querySelector('tbody');
+  tbody.addEventListener('click', e => {
+    if (e.target.closest('.grp-cell')) return;   // 사업자 묶음 칸은 특정 사업장으로 이동하지 않음
+    const tr = e.target.closest('tr[data-id]');
+    if (tr) go(`${base()}/wp/${tr.dataset.id}`);
+  });
+  tbody.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('tr[data-id]')) go(`${base()}/wp/${e.target.dataset.id}`); });
+}
+
+/* ═══ 사업장 상세 ═══ */
+const HS = {};   // 사업장별 휴일 조회 연도
+
+function renderDetail(id){
+  const w = WP.find(x => x.id === id);
+  if (!w || !visibleWP().includes(w)){ messageView('사업장 관리', 'red', '사업장 정보를 불러오지 못했습니다. 목록에서 다시 선택해주세요.'); return; }
+  const b = BIZ[w.bizId], edit = canEdit(w), ind = industryOf(w.industry);
+  const roles = [['사업장소유주', w.roles.owner], ['안전보건관리책임자', w.roles.chief], ['안전관리자', w.roles.safety], ['보건관리자', w.roles.health], ['관리감독자', w.roles.supervisor]];
+
+  view.innerHTML = `
+  <div class="page-hd"><h1 class="page-title">${ic('factory','lg')}사업장 관리</h1></div>
+  ${edit ? '' : `<div class="callout gray page-note">${ic('info')}<span class="txt"><b>${esc(b.name)}</b>의 사업장입니다. 본사에서는 조회만 할 수 있고, 수정 · 휴일 등록 · 업무 생성은 지사에서 합니다.</span></div>`}
+  <div class="card">
+    <h2 class="card-ttl">사업장 상세정보</h2>
+    <div class="info-grid">
+      <div><div class="k">사업장명</div><div class="v">${esc(w.name)}</div></div>
+      <div><div class="k">사업자</div><div class="v">${typeBadge(b.type)}${esc(b.name)}</div></div>
+      <div><div class="k">사업장관리번호</div><div class="v num">${w.mgmtNo}</div></div>
+      <div><div class="k">사업자등록번호</div><div class="v num">${fmtBiz(w.bizNo)}</div></div>
+      <div><div class="k">업종</div><div class="v">${ind ? `<span class="num">${ind.code}</span> (${esc(ind.name)})` : '-'}</div></div>
+      <div><div class="k">주소</div><div class="v">${esc(w.addr)}${w.addrDetail ? ', ' + esc(w.addrDetail) : ''}</div></div>
+      <div><div class="k">공사금액</div><div class="v">${w.amount ? krw(w.amount) : '-'}</div></div>
+      <div><div class="k">상시근로자수</div><div class="v num">${w.workers}명</div></div>
+      <div><div class="k">등록일</div><div class="v num">${fmtDateKo(w.createdAt)}</div></div>
+    </div>
+    <hr class="divider" style="margin:22px 0">
+    <h3 class="card-ttl" style="font-size:13px;margin-bottom:12px">역할 담당자</h3>
+    <div class="role-grid">${roles.map(([k, v]) => `<div><div class="k">${k}</div><div class="v ${v ? '' : 'empty'}">${v ? esc(v) : '미지정'}</div></div>`).join('')}</div>
+    <div class="actions">
+      <div class="grp"><a class="btn btn-g btn-lg" href="${base()}">${ic('list')}목록으로</a></div>
+      ${edit ? `<a class="btn btn-p btn-lg" href="${base()}/wp/${w.id}/edit">${ic('edit')}수정</a>` : ''}
+    </div>
+  </div>
+  <section class="card sub-card" id="projSec" aria-label="연결된 사업"></section>
+  <section class="card sub-card" id="budgetSec" aria-label="연결된 예산"></section>
+  <section class="card sub-card" id="holSec" aria-label="휴일 관리"></section>
+  ${CTX.mode === 'hq' ? DESC_DETAIL : ''}`;
+
+  drawProjects(w, edit);
+  drawBudgets(w);
+  drawHolidays(w, edit);
+}
+
+function tplBox(p, i, edit){
+  const year = p.year || '2026', done = p.generated?.[year];
+  return `<div class="tpl-box">
+    <div class="tpl-bar">
+      <select class="f-input" data-year="${i}" aria-label="업무 생성 연도">${['2026','2027'].map(y => opt(y, `${y}년`, year)).join('')}</select>
+      <span class="badge ${done ? 'b-green' : 'b-gray'}">${done ? '생성 완료' : '미생성'}</span>
+      ${edit ? `<button type="button" class="btn btn-p btn-sm" data-gen="${i}" ${done || !p.templates.length ? 'disabled' : ''}>${ic('layers')}업무 일괄 생성</button>` : ''}
+    </div>
+    ${p.templates.length
+      ? p.templates.map(t => `<div class="tpl-item"><span class="badge dot b-gray">법령</span><span class="badge dot b-blue">대상업무</span><b style="font-weight:600">${esc(t.name)}</b><span class="cnt num">(${t.count}건)</span></div>`).join('')
+      : '<div class="tpl-empty">등록된 업무 템플릿이 없습니다.</div>'}
+  </div>`;
+}
+
+function drawProjects(w, edit){
+  const sec = $('#projSec');
+  sec.innerHTML = `<h2 class="card-ttl">${ic('briefcase')}연결된 사업</h2>
+    <div class="tbl-wrap"><table class="tbl plain">
+      <thead><tr><th class="l">사업명</th><th style="width:170px">사업자</th><th style="width:200px">기간</th><th style="width:80px">역할</th><th style="width:90px">상태</th><th style="width:110px">업무 템플릿</th><th style="width:70px">관리</th></tr></thead>
+      <tbody>${w.projects.length ? w.projects.map((p, i) => `
+        <tr>
+          <td class="l">${esc(p.name)}</td>
+          <td>${esc(p.biz)}</td>
+          <td class="num">${p.from ? `${p.from} ~ ${p.to}` : '-'}</td>
+          <td><span class="badge dot b-blue">${p.role}</span></td>
+          <td><span class="badge dot b-green">${p.status}</span></td>
+          <td><button type="button" class="btn btn-g btn-sm tpl-toggle ${p.open ? 'open' : ''}" data-tpl="${i}" aria-expanded="${!!p.open}">${ic('chev')}${p.open ? `<span class="num">${p.templates.length}건</span>` : '조회'}</button></td>
+          <td><button type="button" class="btn btn-g btn-ico" data-ext="${i}" aria-label="${esc(p.name)} 사업 관리로 이동" title="사업 관리로 이동">${ic('external')}</button></td>
+        </tr>
+        ${p.open ? `<tr class="tpl-row"><td colspan="7">${tplBox(p, i, edit)}</td></tr>` : ''}`).join('')
+        : '<tr class="empty"><td colspan="7">연결된 사업이 없습니다.</td></tr>'}</tbody>
+    </table></div>`;
+
+  sec.querySelectorAll('[data-tpl]').forEach(btn => btn.addEventListener('click', () => {
+    const p = w.projects[+btn.dataset.tpl];
+    p.open = !p.open;
+    drawProjects(w, edit);
+    sec.querySelector(`[data-tpl="${btn.dataset.tpl}"]`)?.focus();
+  }));
+  sec.querySelectorAll('[data-ext]').forEach(btn => btn.addEventListener('click', () =>
+    alertModal({ icon:'info', title:'사업 관리', desc:'프로토타입에서는 사업 관리 화면을 제공하지 않습니다.', btn:'확인' })));
+  sec.querySelectorAll('[data-year]').forEach(sel => sel.addEventListener('change', () => { w.projects[+sel.dataset.year].year = sel.value; drawProjects(w, edit); }));
+  sec.querySelectorAll('[data-gen]').forEach(btn => btn.addEventListener('click', () => {
+    const p = w.projects[+btn.dataset.gen], year = p.year || '2026';
+    confirmModal({ icon:'info', title:'업무를 일괄 생성하시겠습니까?',
+      desc:`<b>${esc(p.name)}</b>의 ${year}년 업무를 업무 템플릿 <b class="num">${p.templates.length}종</b>으로 생성합니다.`,
+      ok:'생성', okCls:'btn-p',
+      onOk:() => { p.generated = { ...(p.generated || {}), [year]:true }; drawProjects(w, edit); toast('success', '업무가 생성되었습니다.', `${year}년 업무 ${p.templates.length}종이 생성되었습니다.`); } });
+  }));
+}
+
+function drawBudgets(w){
+  $('#budgetSec').innerHTML = `<h2 class="card-ttl">${ic('wallet')}연결된 예산</h2>
+    <div class="tbl-wrap"><table class="tbl plain">
+      <thead><tr><th class="l">예산명</th><th style="width:180px">업종코드</th><th style="width:220px">예산액</th></tr></thead>
+      <tbody>${w.budgets.length
+        ? w.budgets.map(x => `<tr><td class="l">${esc(x.name)}</td><td class="num">${x.code}</td><td class="num">${krw(x.amount)}</td></tr>`).join('')
+        : '<tr class="empty"><td colspan="3">연결된 예산이 없습니다.</td></tr>'}</tbody>
+    </table></div>`;
+}
+
+function drawHolidays(w, edit){
+  const st = HS[w.id] || (HS[w.id] = { year:'2026', applied:'2026' });
+  const rows = w.holidays.filter(h => h.date.startsWith(st.applied)).sort((a,b) => a.date.localeCompare(b.date));
+  const sec = $('#holSec');
+  sec.innerHTML = `<h2 class="card-ttl">${ic('calendar')}휴일 관리</h2>
+    <div class="hol-bar">
+      <select class="f-input" id="holYear" aria-label="조회 연도">${['2025','2026','2027'].map(y => opt(y, `${y}년`, st.year)).join('')}</select>
+      <button type="button" class="btn btn-g" data-hol="search">${ic('search')}조회</button>
+      ${edit ? `<button type="button" class="btn btn-op" data-hol="add">${ic('plus')}휴일 등록</button>` : ''}
+    </div>
+    <div class="tbl-wrap"><table class="tbl plain">
+      <thead><tr><th style="width:200px">휴일일자</th><th class="l">휴일명</th><th style="width:140px">등록일</th><th style="width:120px">관리</th></tr></thead>
+      <tbody>${rows.length ? rows.map(h => `<tr>
+          <td class="num">${h.date} (${dow(h.date)})</td>
+          <td class="l">${esc(h.name)}</td>
+          <td class="num">${h.createdAt}</td>
+          <td>${edit ? `<button type="button" class="btn btn-g danger btn-sm" data-hdel="${h.date}">${ic('trash')}삭제</button>` : '<span class="dash">-</span>'}</td>
+        </tr>`).join('')
+        : `<tr class="empty"><td colspan="4">${w.holidays.length ? '검색 결과가 없습니다.' : '등록된 휴일이 없습니다.'}</td></tr>`}</tbody>
+    </table></div>
+    <p class="hol-note">${ic('info')}이 사업장에서만 적용되는 휴일입니다. (예: 창립기념일, 하계휴가 등)</p>`;
+
+  $('#holYear').addEventListener('change', e => { st.year = e.target.value; });
+  sec.querySelector('[data-hol="search"]').addEventListener('click', () => { st.applied = st.year; drawHolidays(w, edit); });
+  sec.querySelector('[data-hol="add"]')?.addEventListener('click', () => holidayModal(w, () => drawHolidays(w, edit)));
+  sec.querySelectorAll('[data-hdel]').forEach(btn => btn.addEventListener('click', () => {
+    const h = w.holidays.find(x => x.date === btn.dataset.hdel);
+    confirmModal({ icon:'warn', title:'휴일을 삭제하시겠습니까?', desc:`<b class="num">${h.date}</b> <b>${esc(h.name)}</b><br>삭제된 휴일 정보는 복구할 수 없습니다.`,
+      ok:'삭제', okCls:'btn-d',
+      onOk:() => { w.holidays = w.holidays.filter(x => x !== h); drawHolidays(w, edit); toast('success', '삭제되었습니다.', `${h.name} 휴일이 삭제되었습니다.`); } });
+  }));
+}
+
+function holidayModal(w, after){
+  const NAME_HINT = '최대 30자까지 입력 가능합니다.';
+  const ov = openModal(`<div class="modal form-modal" role="dialog" aria-modal="true" aria-labelledby="mT">
+    <h2 class="m-title" id="mT">휴일 등록</h2>
+    <div class="fld" data-f="hDate" style="margin-top:16px">
+      <label class="f-lbl" for="hDate">휴일일자<span class="f-req">*</span></label>
+      <input type="date" class="f-input num" id="hDate" min="2025-01-01" max="2027-12-31">
+      <div class="msg"></div>
+    </div>
+    <div class="fld" data-f="hName" style="margin-top:14px">
+      <label class="f-lbl" for="hName">휴일명<span class="f-req">*</span></label>
+      <input class="f-input" id="hName" maxlength="30" placeholder="휴일명을 입력하세요">
+      <div class="msg"><div class="f-hint">${NAME_HINT}</div></div>
+    </div>
+    <div class="m-acts" style="margin-top:22px"><button type="button" class="btn btn-g" data-m="cancel">취소</button><button type="button" class="btn btn-p" data-m="ok">등록</button></div>
+  </div>`, { dismissible:true, focus:'#hDate' });
+  const dateEl = ov.querySelector('#hDate'), nameEl = ov.querySelector('#hName');
+  const setErr = (key, msg, hint) => {
+    const f = ov.querySelector(`[data-f="${key}"]`);
+    f.classList.toggle('has-err', !!msg);
+    f.querySelector('.msg').innerHTML = (hint ? `<div class="f-hint">${hint}</div>` : '') + (msg ? `<div class="f-err-msg">⚠ ${msg}</div>` : '');
+  };
+  dateEl.addEventListener('change', () => setErr('hDate', ''));
+  nameEl.addEventListener('input', () => { if (nameEl.value.trim()) setErr('hName', '', NAME_HINT); });
+  ov.querySelector('[data-m="ok"]').addEventListener('click', () => {
+    const d = dateEl.value, n = nameEl.value.trim();
+    const dErr = !d ? '휴일일자를 선택해주세요.' : w.holidays.some(h => h.date === d) ? '이미 등록된 휴일일자입니다.' : '';
+    const nErr = n ? '' : '휴일명을 입력해주세요.';
+    setErr('hDate', dErr);
+    setErr('hName', nErr, NAME_HINT);
+    if (dErr || nErr){ (dErr ? dateEl : nameEl).focus(); return; }
+    w.holidays.push({ date:d, name:n, createdAt:TODAY });
+    HS[w.id] = { year:d.slice(0,4), applied:d.slice(0,4) };
+    closeModal();
+    toast('success', '등록되었습니다.', `${n} 휴일이 등록되었습니다.`);
+    after();
+  });
+}
+
+/* ═══ 사업장 등록 · 수정 ═══ */
+let F = null;
+const RULES = {
+  name:     () => F.name.trim() ? '' : '사업장명을 입력해주세요.',
+  mgmtNo:   () => !F.mgmtNo ? '사업장관리번호를 입력해주세요.'
+    : !/^\d{11}$/.test(F.mgmtNo) ? '사업장관리번호 11자리를 숫자로 입력해주세요.'
+    : WP.some(x => x.mgmtNo === F.mgmtNo && x.id !== F.id) ? '이미 등록된 사업장관리번호입니다.' : '',
+  addr:     () => F.addr ? '' : '주소를 입력해주세요.',
+  industry: () => F.industry ? '' : (F.indQuery.trim() ? '검색 결과 목록에서 업종을 선택해주세요.' : '업종을 검색해 선택해주세요.'),
+  workers:  () => F.workers === '' ? '상시근로자수를 입력해주세요.' : '',
+  amount:   () => !isConstruction(F.industry) ? '' : (+F.amount.replace(/,/g,'') > 0 ? '' : '공사금액을 입력해주세요.')
+};
+
+function renderForm(id){
+  const edit = id != null;
+  const w = edit ? WP.find(x => x.id === id) : null;
+  if (edit && (!w || !visibleWP().includes(w))){ messageView('사업장 수정', 'red', '사업장 정보를 불러오지 못했습니다. 목록에서 다시 선택해주세요.'); return; }
+  if (edit && !canEdit(w)){ messageView('사업장 수정', 'gray', `<b>${esc(BIZ[w.bizId].name)}</b>의 사업장은 지사에서만 수정할 수 있습니다.`); return; }
+  F = edit
+    ? { id:w.id, bizId:String(w.bizId), name:w.name, mgmtNo:w.mgmtNo,
+        addr:w.addr, addrDetail:w.addrDetail, industry:w.industry, indQuery:'', workers:String(w.workers), amount:w.amount ? w.amount.toLocaleString() : '', edit:true }
+    : { id:null, bizId:String(CTX.mode === 'br' ? CTX.bizId : HQ_ID), name:'', mgmtNo:'',
+        addr:'', addrDetail:'', industry:'', indQuery:'', workers:'0', amount:'', edit:false };
+  Object.assign(F, { errors:{}, touched:{}, dirty:false });
+  drawForm();
+}
+
+const msgHtml = (key, hint) => `${hint ? `<div class="f-hint">${hint}</div>` : ''}${F.errors[key] ? `<div class="f-err-msg">⚠ ${F.errors[key]}</div>` : ''}`;
+function fld(key, label, inner, o = {}){
+  return `<div class="fld ${o.full ? 'f-full' : ''} ${F.errors[key] ? 'has-err' : ''}" data-f="${key}" data-hint="${esc(o.hint || '')}">
+    <label class="f-lbl" for="in-${key}">${label}${o.req ? '<span class="f-req">*</span>' : ''}</label>
+    ${inner}
+    <div class="msg">${msgHtml(key, o.hint)}</div>
+  </div>`;
+}
+function setMsg(key){
+  const el = view.querySelector(`.fld[data-f="${key}"]`);
+  if (!el) return;
+  el.classList.toggle('has-err', !!F.errors[key]);
+  el.querySelector('.msg').innerHTML = msgHtml(key, el.dataset.hint);
+}
+
+function industryField(){
+  const ind = industryOf(F.industry);
+  return ind
+    ? `<div class="picker"><span class="chip"><span class="num">${ind.code}</span> - ${esc(ind.name)}<button type="button" class="chip-x" data-do="clearInd" aria-label="업종 선택 해제">${ic('x')}</button></span></div>`
+    : `<div class="hq-search"><span class="lead">${ic('search')}</span>
+        <input class="f-input" id="in-industry" role="combobox" aria-expanded="false" aria-controls="indList" aria-autocomplete="list" autocomplete="off"
+          placeholder="업종명 또는 코드를 입력하세요 (2자 이상)" value="${esc(F.indQuery)}">
+        <ul class="combo-list" id="indList" role="listbox" aria-label="업종 검색 결과" hidden></ul></div>`;
+}
+
+function drawForm(){
+  const e = F.edit, biz = F.bizId ? BIZ[F.bizId] : null, cons = isConstruction(F.industry);
+  const bizNoField = fld('bizNo', '사업자등록번호', `<input class="f-input num" id="in-bizNo" readonly value="${biz ? fmtBiz(biz.bizNo) : ''}">`);
+
+  view.innerHTML = `
+  <form class="card" id="wpForm" novalidate>
+    <h1 class="card-ttl" style="font-size:20px;margin-bottom:22px">${e ? '사업장 수정' : '사업장 등록'}</h1>
+    <div class="f-row">
+      ${fld('bizId', '사업자', `<input class="f-input" id="in-bizId" readonly value="${biz ? esc(biz.name) : ''}">`, { hint:'로그인한 사업자로 자동 등록됩니다.' })}
+      ${bizNoField}
+      ${fld('name', '사업장명', `<input class="f-input" id="in-name" data-k="name" maxlength="50" placeholder="사업장명을 입력하세요" value="${esc(F.name)}">`, { req:true })}
+      ${fld('mgmtNo', '사업장관리번호', `<input class="f-input num" id="in-mgmtNo" data-k="mgmtNo" inputmode="numeric" maxlength="11" placeholder="사업장관리번호 11자리를 입력하세요" value="${esc(F.mgmtNo)}">`, { req:true })}
+      ${fld('addr', '주소', `<div class="combo"><input class="f-input" id="in-addr" data-k="addr" readonly placeholder="주소검색으로 입력해주세요" value="${esc(F.addr)}"><button type="button" class="btn" data-do="addr">${ic('search')}주소검색</button></div>
+        <input class="f-input" id="in-addrDetail" data-k="addrDetail" aria-label="상세주소" style="margin-top:10px" placeholder="상세주소 (동/호수 등)" value="${esc(F.addrDetail)}">`, { req:true, full:true })}
+      ${fld('industry', '업종코드', industryField(), { req:true })}
+      ${fld('workers', '상시근로자수', `<input class="f-input num" id="in-workers" data-k="workers" inputmode="numeric" maxlength="6" value="${esc(F.workers)}">`, { req:true, hint:'사업장에 상시 고용된 근로자 수를 입력하세요.' })}
+      ${cons ? `
+      ${fld('amount', '공사금액 (원)', `<input class="f-input num" id="in-amount" data-k="amount" inputmode="numeric" placeholder="0" value="${esc(F.amount)}">`, { req:true })}
+      <div class="fld"><label class="f-lbl" for="amountKo">&nbsp;<span class="sr-only">공사금액 한글 표기</span></label>
+        <input class="f-input" id="amountKo" readonly tabindex="-1" placeholder="금액을 입력하면 자동으로 표시됩니다" value="${F.amount ? krw(+F.amount.replace(/,/g,'')) : ''}"></div>` : ''}
+    </div>
+    <div class="actions">
+      <div class="grp">
+        <button type="button" class="btn btn-g btn-lg" data-do="back">${ic('list')}목록으로</button>
+        ${e ? `<button type="button" class="btn btn-g danger btn-lg" data-do="delete">${ic('trash')}삭제하기</button>` : ''}
+      </div>
+      <button type="submit" class="btn btn-p btn-lg">${e ? ic('edit') + '수정하기' : ic('plus') + '등록하기'}</button>
+    </div>
+  </form>
+  ${CTX.mode === 'hq' ? DESC_FORM : ''}`;
+  bindForm();
+  bindIndustry();
+}
+
+function bindIndustry(){
+  const input = $('#in-industry');
+  if (!input) return;
+  const list = $('#indList');
+  let items = [], active = -1;
+  const mark = (text, q) => { const i = q ? text.indexOf(q) : -1; return i < 0 ? esc(text) : esc(text.slice(0,i)) + '<mark>' + esc(text.slice(i, i+q.length)) + '</mark>' + esc(text.slice(i+q.length)); };
+  const close = () => { list.hidden = true; input.setAttribute('aria-expanded','false'); input.removeAttribute('aria-activedescendant'); };
+  const sync = () => {
+    list.querySelectorAll('.combo-opt').forEach((el, i) => el.setAttribute('aria-selected', String(i === active)));
+    const cur = items[active];
+    if (cur){ input.setAttribute('aria-activedescendant', 'ind-' + cur.code); $('#ind-' + cur.code)?.scrollIntoView({ block:'nearest' }); }
+  };
+  const open = () => {
+    const q = input.value.trim();
+    if (q.length < 2){ close(); return; }
+    items = INDUSTRY.filter(x => x.code.includes(q) || x.name.includes(q));
+    active = items.length ? 0 : -1;
+    list.innerHTML = items.length
+      ? `<li class="combo-head" role="presentation">검색 결과 ${items.length}건</li>` + items.map(x => `
+        <li class="combo-opt" role="option" id="ind-${x.code}" data-code="${x.code}" aria-selected="false">
+          <span><span class="nm"><span class="num">${mark(x.code, q)}</span> - ${mark(x.name, q)}</span>
+          <span class="meta">${isConstruction(x.code) ? '건설업 · 공사금액 입력 필요' : '건설업 외 업종'}</span></span>
+        </li>`).join('')
+      : '<li class="combo-empty" role="presentation">검색 결과가 없습니다.</li>';
+    list.hidden = false;
+    input.setAttribute('aria-expanded','true');
+    sync();
+  };
+  const choose = code => {
+    Object.assign(F, { industry:code, indQuery:'', dirty:true });
+    if (!isConstruction(code)) F.amount = '';
+    F.errors.industry = ''; F.errors.amount = '';
+    drawForm();
+    view.querySelector('.fld[data-f="industry"] .chip-x')?.focus({ preventScroll:true });
+  };
+  input.addEventListener('input', () => { F.indQuery = input.value; F.dirty = true; if (F.errors.industry){ F.errors.industry = ''; setMsg('industry'); } open(); });
+  input.addEventListener('focus', open);
+  input.addEventListener('blur', () => setTimeout(close, 120));
+  input.addEventListener('keydown', ev => {
+    if (ev.key === 'ArrowDown'){ ev.preventDefault(); if (list.hidden) open(); else if (items.length){ active = (active + 1) % items.length; sync(); } }
+    else if (ev.key === 'ArrowUp'){ ev.preventDefault(); if (items.length){ active = (active - 1 + items.length) % items.length; sync(); } }
+    else if (ev.key === 'Enter'){ ev.preventDefault(); if (!list.hidden && items[active]) choose(items[active].code); }
+    else if (ev.key === 'Escape' && !list.hidden){ ev.preventDefault(); close(); }
+  });
+  list.addEventListener('mousedown', ev => { const o = ev.target.closest('[data-code]'); if (o){ ev.preventDefault(); choose(o.dataset.code); } });
+}
+
+function bindForm(){
+  const form = $('#wpForm');
+  form.addEventListener('input', ev => {
+    const t = ev.target, k = t.dataset.k;
+    if (!k) return;
+    if (k === 'mgmtNo') t.value = t.value.replace(/\D/g,'').slice(0, 11);
+    if (k === 'workers') t.value = t.value.replace(/\D/g,'').slice(0, 6);
+    if (k === 'amount'){
+      const n = t.value.replace(/\D/g,'').slice(0, 13);
+      t.value = n ? Number(n).toLocaleString() : '';
+      const ko = $('#amountKo'); if (ko) ko.value = n ? krw(+n) : '';
+    }
+    F[k] = t.value; F.dirty = true; F.touched[k] = true;
+    if (F.errors[k] && RULES[k]){ F.errors[k] = RULES[k](); setMsg(k); }
+  });
+  form.addEventListener('focusout', ev => {
+    const k = ev.target.dataset.k;
+    if (k && RULES[k] && F.touched[k]){ F.errors[k] = RULES[k](); setMsg(k); }
+  });
+  form.addEventListener('click', ev => {
+    const d = ev.target.closest('[data-do]');
+    if (!d) return;
+    ({
+      addr: () => {
+        F.addr = CTX.mode === 'hq' ? '서울 영등포구 국제금융로 10' : '전남 목포시 삼학로 92';
+        F.errors.addr = ''; F.dirty = true;
+        $('#in-addr').value = F.addr; setMsg('addr'); $('#in-addrDetail').focus();
+      },
+      clearInd: () => { Object.assign(F, { industry:'', indQuery:'', amount:'', dirty:true }); drawForm(); $('#in-industry')?.focus(); },
+      back: () => leaveForm(base()),
+      delete: deleteWp
+    })[d.dataset.do]?.();
+  });
+  form.addEventListener('submit', ev => { ev.preventDefault(); submitForm(); });
+}
+
+function leaveForm(hash){
+  if (!F.dirty){ F = null; go(hash); return; }
+  confirmModal({ icon:'warn', title:'작성 중인 내용이 있습니다', desc:'페이지를 벗어나면 입력한 내용이 저장되지 않습니다.',
+    cancel:'계속 작성', ok:'나가기', okCls:'btn-p', onOk:() => { F = null; go(hash); } });
+}
+
+function submitForm(){
+  Object.keys(RULES).forEach(k => F.errors[k] = RULES[k]());
+  drawForm();
+  const bad = view.querySelector('.has-err');
+  if (bad){
+    bad.scrollIntoView({ block:'center', behavior:'smooth' });
+    bad.querySelector('input:not([readonly]), select, button')?.focus({ preventScroll:true });
+    return;
+  }
+  const biz = BIZ[F.bizId];
+  const data = { bizId:+F.bizId, name:F.name.trim(), mgmtNo:F.mgmtNo, bizNo:biz.bizNo,
+    addr:F.addr, addrDetail:F.addrDetail.trim(), industry:F.industry, workers:+F.workers,
+    amount:isConstruction(F.industry) ? +F.amount.replace(/,/g,'') : null };
+  const name = data.name;
+  if (!F.edit){
+    WP.push({ id:Math.max(...WP.map(x => x.id)) + 1, ...data, createdAt:TODAY,
+      roles:{ owner:biz.owner, chief:'', safety:'', health:'', supervisor:'' }, projects:[], budgets:[], holidays:[] });
+    F = null;
+    Object.assign(LS, { biz:'', q:'', page:1 });
+    toast('success', '등록되었습니다.', `${name}${josa(name,'이','가')} 등록되었습니다.`);
+    go(base());
+    return;
+  }
+  const id = F.id;
+  Object.assign(WP.find(x => x.id === id), data);
+  F = null;
+  toast('success', '수정되었습니다.', `${name}${josa(name,'이','가')} 수정되었습니다.`);
+  go(`${base()}/wp/${id}`);
+}
+
+function deleteWp(){
+  const w = WP.find(x => x.id === F.id);
+  if (w.projects.length){
+    alertModal({ icon:'err', title:'사업장을 삭제할 수 없습니다',
+      desc:`연결된 사업이 <b class="num">${w.projects.length}건</b> 있습니다.<br>사업에서 이 사업장 연결을 먼저 해제한 뒤 다시 시도해주세요.`, btn:'확인' });
+    return;
+  }
+  confirmModal({ icon:'warn', title:'사업장을 삭제하시겠습니까?', desc:'삭제된 사업장 정보와 휴일 정보는 복구할 수 없습니다.',
+    ok:'삭제', okCls:'btn-d',
+    onOk:() => { WP = WP.filter(x => x.id !== w.id); F = null; toast('success', '삭제되었습니다.', `${w.name}${josa(w.name,'이','가')} 삭제되었습니다.`); go(base()); } });
+}
+
+/* ═══ 모달 (03-6 얼럿 / 03-7 컨펌) ═══ */
+let lastFocus = null, modalOpts = {};
+function openModal(inner, opts = {}){
+  lastFocus = document.activeElement; modalOpts = opts;
+  const root = $('#modalRoot');
+  root.innerHTML = `<div class="overlay">${inner}</div>`;
+  const ov = root.firstElementChild;
+  ov.addEventListener('mousedown', e => { if (e.target === ov && opts.dismissible) closeModal(); });
+  ov.querySelectorAll('[data-m="cancel"]').forEach(btn => btn.addEventListener('click', closeModal));
+  (opts.focus ? ov.querySelector(opts.focus) : ov.querySelector('[data-m="ok"]'))?.focus();
+  return ov;
+}
+function closeModal(){
+  const root = $('#modalRoot');
+  if (!root.firstChild) return;
+  root.innerHTML = ''; modalOpts = {};
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll:true });
+}
+document.addEventListener('keydown', e => {
+  const ov = $('#modalRoot .overlay');
+  if (!ov) return;
+  if (e.key === 'Escape' && modalOpts.dismissible){ e.preventDefault(); closeModal(); }
+  if (e.key === 'Tab'){
+    const f = [...ov.querySelectorAll('button, input, textarea, select')].filter(x => !x.disabled);
+    if (!f.length) return;
+    if (e.shiftKey && document.activeElement === f[0]){ e.preventDefault(); f[f.length-1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length-1]){ e.preventDefault(); f[0].focus(); }
+  }
+});
+const M_ICON = { warn:['m-warn','alert'], err:['m-err','alert'], info:['m-info','info'] };
+function confirmModal({ icon='warn', title, desc, ok, okCls='btn-p', cancel='취소', onOk }){
+  const ov = openModal(`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mT">
+    <div class="m-icon ${M_ICON[icon][0]}">${ic(M_ICON[icon][1],'lg')}</div>
+    <h2 class="m-title" id="mT">${title}</h2>
+    <div class="m-desc">${desc}</div>
+    <div class="m-acts"><button type="button" class="btn btn-g" data-m="cancel">${cancel}</button><button type="button" class="btn ${okCls}" data-m="ok">${ok}</button></div>
+  </div>`, { dismissible:true });
+  ov.querySelector('[data-m="ok"]').addEventListener('click', () => { closeModal(); onOk(); });
+}
+function alertModal({ icon='info', title, desc, btn='확인', onOk }){
+  const ov = openModal(`<div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mT">
+    <div class="m-icon ${M_ICON[icon][0]}">${ic(M_ICON[icon][1],'lg')}</div>
+    <h2 class="m-title" id="mT">${title}</h2>
+    <div class="m-desc">${desc}</div>
+    <div class="m-acts"><button type="button" class="btn btn-p" data-m="ok">${btn}</button></div>
+  </div>`);
+  ov.querySelector('[data-m="ok"]').addEventListener('click', () => { closeModal(); onOk?.(); });
+}
+
+/* ═══ 토스트 (03-5: 성공 3초 · 오류 5초, 동시 1개) ═══ */
+let toastTimer;
+function toast(kind, title, msg){
+  const s = $('#toasts');
+  clearTimeout(toastTimer);
+  s.innerHTML = `<div class="toast t-${kind}" role="status">${ic(kind === 'success' ? 'checkC' : 'alert', 't-ic')}
+    <div><div class="t-title">${title}</div>${msg ? `<div class="t-msg">${esc(msg)}</div>` : ''}</div>
+    <button type="button" class="t-close" aria-label="알림 닫기">${ic('x')}</button></div>`;
+  s.querySelector('.t-close').addEventListener('click', () => { s.innerHTML = ''; });
+  toastTimer = setTimeout(() => { s.innerHTML = ''; }, kind === 'success' ? 3000 : 5000);
+}
+
+/* ═══ 화면 하단 설명 (본사 시점, 프로토타입 전용) ═══ */
+const descBlock = (title, body) => `<section class="desc" aria-label="${title} 설명">
+  <div class="desc-hd"><span class="desc-tag">DESCRIPTION</span><h2 class="desc-ttl">${title}</h2></div>${body}</section>`;
+
+const DESC_LIST = descBlock('사업장 목록 · 예시 데이터', `<div class="desc-scroll"><table class="desc-tbl" style="min-width:920px">
+  <thead><tr><th style="width:28%">사업자</th><th style="width:24%">사업장</th><th style="width:20%">본사 시점</th><th>삭제</th></tr></thead>
+  <tbody>
+    <tr><td>본사 · (주)안전건설</td><td><a href="#/hq/wp/75">여의도 안전교육센터</a></td><td>표시 · 수정 가능</td><td><b>삭제 가능</b> · 연결된 사업 없음</td></tr>
+    <tr><td>본사 · (주)안전건설</td><td><a href="#/hq/wp/61">판교 오피스 신축현장</a></td><td>표시 · 수정 가능</td><td>삭제 불가 · 연결된 사업 1건</td></tr>
+    <tr><td>본사 · (주)안전건설</td><td><a href="#/hq/wp/58">(주)안전건설</a></td><td>표시 · 수정 가능</td><td>삭제 불가 · 연결된 사업 3건</td></tr>
+    <tr><td>지사 · (주)안전건설 목포지사</td><td><a href="#/hq/wp/66">목포신항 물류센터 현장</a></td><td>표시 · 조회만 가능</td><td>지사에서 <b>삭제 가능</b> · 연결된 사업 없음</td></tr>
+    <tr><td>지사 · (주)안전건설 목포지사</td><td><a href="#/hq/wp/64">(주)안전건설 목포지사</a></td><td>표시 · 조회만 가능</td><td>삭제 불가 · 연결된 사업 1건</td></tr>
+    <tr><td>지사 · (주)안전건설 순천지사</td><td><a href="#/hq/wp/70">(주)안전건설 순천지사</a></td><td>표시 · 조회만 가능</td><td>삭제 불가 · 연결된 사업 1건</td></tr>
+    <tr><td>지사 · (주)안전건설 광주지사(승인 대기)</td><td>(주)안전건설 광주지사</td><td><b>미표시</b> · 본사 연결 승인 전</td><td>지사에서 <b>삭제 가능</b> · 연결된 사업 없음</td></tr>
+  </tbody></table></div>
+  <ul class="desc-list" style="margin-top:12px">
+    <li>목록은 사업자별로 묶어서 표시한다. 본사를 먼저, 지사는 이름순으로 배치하고 같은 사업자 안에서는 등록일 최신순으로 정렬한다.</li>
+    <li>본사 시점에는 본사 사업장과 ‘연결됨’ 상태인 지사의 사업장을 함께 표시한다. 승인 대기 · 반려 · 연결 해제 상태 지사의 사업장은 표시하지 않는다.</li>
+    <li>지사 시점에는 해당 지사의 사업장만 표시한다.</li>
+    <li>본점 · 지점을 구분하지 않고 모두 <b>사업장</b>으로 관리한다. 사업장의 사업자등록번호는 소속 사업자의 번호를 따른다.</li>
+  </ul>`);
+
+const DESC_DETAIL = descBlock('사업장 상세 · 권한', `<ul class="desc-list">
+  <li><b>본사 사업장</b>: 수정, 휴일 등록 · 삭제, 업무 일괄 생성을 할 수 있다.</li>
+  <li><b>지사 사업장(본사 시점)</b>: 조회만 할 수 있다. 상단에 안내를 표시하고 [수정] · [휴일 등록] · 휴일 [삭제] · [업무 일괄 생성]을 노출하지 않는다.</li>
+  <li>연결된 사업이 있는 사업장은 삭제할 수 없다(얼럿 모달). 연결된 사업이 없으면 컨펌 모달 후 삭제한다.</li>
+</ul>`);
+
+const DESC_FORM = descBlock('사업장 등록 · 입력 규칙', `<ul class="desc-list">
+  <li><b>사업자 · 사업자등록번호</b>: 선택하지 않는다. 로그인한 사업자(본사 또는 지사)로 자동 등록되며, 사업자등록번호도 함께 자동 입력되고 수정할 수 없다.</li>
+  <li><b>사업장관리번호</b>: 숫자 11자리이며 중복 등록할 수 없다.</li>
+  <li><b>업종코드</b>: 업종명 또는 코드를 2자 이상 입력해 목록에서 선택한다.</li>
+  <li><b>공사금액</b>: 건설업(업종코드 41 · 42로 시작)일 때만 표시되며 필수다. 입력하면 옆 칸에 억 · 만원 단위로 표시된다.</li>
+</ul>`);
+
+/* ═══ 라우팅 ═══ */
+function route(){
+  closeModal();
+  const h = location.hash.replace(/^#\/?/, '') || 'hq';
+  let m, rest;
+  if ((m = h.match(/^hq(?:\/(.*))?$/))){ CTX = { mode:'hq' }; rest = m[1]; }
+  else if ((m = h.match(/^br\/(\d+)(?:\/(.*))?$/)) && BIZ[m[1]]?.type === 'REGION'){ CTX = { mode:'br', bizId:+m[1] }; rest = m[2]; }
+  else { location.hash = '#/hq'; return; }
+  setUserFor();
+  let s;
+  if (!rest) renderList();
+  else if (rest === 'new') renderForm(null);
+  else if ((s = rest.match(/^wp\/(\d+)$/))) renderDetail(+s[1]);
+  else if ((s = rest.match(/^wp\/(\d+)\/edit$/))) renderForm(+s[1]);
+  else renderList();
+  document.querySelectorAll('#protoLinks a').forEach(a => a.classList.toggle('on', a.dataset.r === h));
+  window.scrollTo({ top:0 });
+}
+window.addEventListener('hashchange', route);
+route();
+</script>
